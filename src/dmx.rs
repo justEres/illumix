@@ -5,6 +5,7 @@ use std::{
 };
 
 use serialport::SerialPort;
+use tracing::info;
 
 pub struct DmxPort {
     serial_port: Box<dyn SerialPort>,
@@ -12,6 +13,7 @@ pub struct DmxPort {
 
 impl DmxPort {
     pub fn open() -> DmxPort {
+        info!("Connecting to serial device...");
         let port = serialport::new("/dev/ttyUSB0", 250_000)
             .data_bits(serialport::DataBits::Eight)
             .parity(serialport::Parity::None)
@@ -20,11 +22,12 @@ impl DmxPort {
             .timeout(Duration::from_millis(10))
             .open()
             .expect("Couldnt Open Serial Port");
-
+        info!("Serial device connected.");
         return DmxPort { serial_port: port };
     }
 
     pub fn launch_send_thread(mut self, universe: Arc<Mutex<DmxUniverse>>) {
+        info!("Dmx tread started.");
         thread::spawn(move || {
             let port = &mut self.serial_port;
 
