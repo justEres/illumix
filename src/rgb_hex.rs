@@ -18,3 +18,10 @@ pub fn hex_to_rgb(hex_code: &str) -> RGB {
 
     return rgb;
 }
+
+pub fn rgb_to_hex(r: u8, g: u8, b: u8) -> String{
+
+    let hex_code: String = format!("#{:02x}{:02x}{:02x}", r, g, b);
+
+    return hex_code;
+}
