@@ -1,65 +1,47 @@
-use eframe::egui::{self, CentralPanel, Context, Slider, Window};
 use eframe::App;
 use eframe::WebRunner;
+use eframe::egui::Color32;
+use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window};
 use wasm_bindgen::JsCast;
 use web_sys::window;
+mod color_picker;
+use color_picker::ColorPickerWindow;
+
 
 struct MyApp {
-    slider_value: f32,
-    counter: i32,
-    show_window1: bool,
-    show_window2: bool,
+    
+    color_picker: ColorPickerWindow,
 }
 
-impl Default for MyApp {
-    fn default() -> Self {
+
+impl MyApp {
+    fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        let width = 400;
+        let height = 255;
+        let strip = color_picker::generate_color_strip_image(400, 255); // width x height
+        let texture = cc
+            .egui_ctx
+            .load_texture("hue_strip", strip, egui::TextureOptions::LINEAR);
         Self {
-            slider_value: 50.0,
-            counter: 0,
-            show_window1: true,
-            show_window2: true,
+
+            color_picker: ColorPickerWindow::new(&cc.egui_ctx),
         }
     }
 }
 
 impl App for MyApp {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
-        CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Egui WebAssembly Example");
-            ui.label("Everything below is inside floating windows.");
+        ctx.request_repaint(); 
 
-            if ui.button("Toggle Window 1").clicked() {
-                self.show_window1 = !self.show_window1;
-            }
-            if ui.button("Toggle Window 2").clicked() {
-                self.show_window2 = !self.show_window2;
-            }
-        });
-
-        if self.show_window1 {
-            Window::new("Window 1: Slider & Counter").show(ctx, |ui| {
-                ui.label("Move the slider:");
-                ui.add(Slider::new(&mut self.slider_value, 0.0..=100.0).text("value"));
-                ui.separator();
-                if ui.button("Increment Counter").clicked() {
-                    self.counter += 1;
-                }
-                ui.label(format!("Counter value: {}", self.counter));
-            });
-        }
-
-        if self.show_window2 {
-            Window::new("Window 2: More Buttons").show(ctx, |ui| {
-                if ui.button("Reset Counter").clicked() {
-                    self.counter = 0;
-                }
-                if ui.button("Center Slider").clicked() {
-                    self.slider_value = 50.0;
-                }
-            });
-        }
+        self.color_picker.show(ctx);
+        
+        
     }
 }
+
+///Test
+///
+
 
 #[cfg(target_arch = "wasm32")]
 fn main() {
@@ -79,7 +61,11 @@ fn main() {
 
     wasm_bindgen_futures::spawn_local(async move {
         runner
-            .start(canvas, web_options, Box::new(|_cc| Ok(Box::new(MyApp::default()))))
+            .start(
+                canvas,
+                web_options,
+                Box::new(|_cc| Ok(Box::new(MyApp::new(_cc)))),
+            )
             .await
             .expect("failed to start eframe");
     });
