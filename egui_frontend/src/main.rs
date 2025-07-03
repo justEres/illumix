@@ -4,8 +4,11 @@ use eframe::egui::Color32;
 use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window};
 use wasm_bindgen::JsCast;
 use web_sys::window;
+#[path ="ui_elements/color_picker.rs"]
 mod color_picker;
 use color_picker::ColorPickerWindow;
+
+use crate::color_picker::color_picker;
 
 
 struct MyApp {
@@ -34,7 +37,9 @@ impl App for MyApp {
         ctx.request_repaint(); 
 
         self.color_picker.show(ctx);
-        
+
+        let color = self.color_picker.selected_color;
+
         
     }
 }
