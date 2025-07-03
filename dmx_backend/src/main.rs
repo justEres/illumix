@@ -23,7 +23,7 @@ fn main() {
     loop {
         println!("Enter color code:");
         print!("#");
-        stdout().flush();
+        stdout().flush().unwrap();
         let mut input = String::from("#");
         stdin().read_line(&mut input).unwrap();
 

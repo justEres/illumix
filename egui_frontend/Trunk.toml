@@ -1,0 +1,2 @@
+[build]
+dist = "dist"  # Optional: Where Trunk puts built files
