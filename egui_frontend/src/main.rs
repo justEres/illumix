@@ -1,16 +1,28 @@
 use eframe::App;
 use eframe::WebRunner;
+use gloo_net::websocket::futures::WebSocket;
+use futures_util::{StreamExt};
 use eframe::egui::Color32;
 use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window};
 use wasm_bindgen::JsCast;
 use web_sys::window;
+use gloo_net::websocket::Message;
+#[path ="ui_elements/color_picker.rs"]
 mod color_picker;
 use color_picker::ColorPickerWindow;
+
+#[path ="ui_elements/fixture_manager.rs"]
+mod fixture_manager;
+use fixture_manager::FixtureManager;
+
+
+
 
 
 struct MyApp {
     
     color_picker: ColorPickerWindow,
+    fixture_manager: FixtureManager,
 }
 
 
@@ -23,8 +35,8 @@ impl MyApp {
             .egui_ctx
             .load_texture("hue_strip", strip, egui::TextureOptions::LINEAR);
         Self {
-
             color_picker: ColorPickerWindow::new(&cc.egui_ctx),
+            fixture_manager: FixtureManager::new(&cc.egui_ctx),
         }
     }
 }
@@ -33,14 +45,15 @@ impl App for MyApp {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         ctx.request_repaint(); 
 
-        self.color_picker.show(ctx);
-        
+        //self.color_picker.show(ctx);
+        self.fixture_manager.show(ctx);
+
+        let color = self.color_picker.selected_color;
+
         
     }
 }
 
-///Test
-///
 
 
 #[cfg(target_arch = "wasm32")]
@@ -70,6 +83,8 @@ fn main() {
             .expect("failed to start eframe");
     });
 }
+
+
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
