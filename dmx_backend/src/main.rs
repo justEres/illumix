@@ -1,11 +1,13 @@
-use std::io::{Write, stdin, stdout};
+use std::{io::{stdin, stdout, Write}, sync::{Arc, Mutex}};
 
-use crate::dmx::{DmxPort, DmxUniverse};
+use crate::dmx::{DmxPort};
 use tracing::info;
 use tracing_subscriber;
 mod dmx;
 mod rgb_hex;
 mod server;
+
+use fixture_lib::{fixture::{Color, Dimmer, Fixture}, universe::Universe};
 
 fn main() {
     tracing_subscriber::fmt()
@@ -15,11 +17,17 @@ fn main() {
         .with_target(false) // Enable ANSI colors
         .init();
 
-    let uni = DmxUniverse::new();
+    let mut uni = Universe::new();
+    let mut f = Fixture::new(0, 1, "Eurolite Led".into());
+    f.add_component(fixture_lib::fixture::FixtureComponent::Color(Color{r:0,g:0,b:255}));
+    f.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 255 }));
+    uni.add_fixture(f);
+
+    let uni = Arc::new(Mutex::new(uni));
     info!("Created Dmx Universe.");
 
-    /* let port = DmxPort::open();
-    port.launch_send_thread(uni.clone()); */
+    let port = DmxPort::open();
+    port.launch_send_thread(uni.clone());
 
     /* loop {
         println!("Enter color code:");

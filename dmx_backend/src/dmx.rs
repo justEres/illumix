@@ -6,6 +6,7 @@ use std::{
 
 use serialport::SerialPort;
 use tracing::info;
+use fixture_lib::universe::Universe;
 
 pub struct DmxPort {
     serial_port: Box<dyn SerialPort>,
@@ -26,7 +27,7 @@ impl DmxPort {
         return DmxPort { serial_port: port };
     }
 
-    pub fn launch_send_thread(mut self, universe: Arc<Mutex<DmxUniverse>>) {
+    pub fn launch_send_thread(mut self, universe: Arc<Mutex<Universe>>) {
         info!("Dmx tread started.");
         thread::spawn(move || {
             let port = &mut self.serial_port;
@@ -40,7 +41,7 @@ impl DmxPort {
                 // Copy data from shared Dmx Universe
                 let mut new_channels: [u8; 513] = [0; 513];
                 {
-                    new_channels[1..].copy_from_slice(&universe.lock().unwrap().channels);
+                    new_channels[1..].copy_from_slice(&universe.lock().unwrap().get_dmx_values());
                 }
                 // write to port
                 port.write_all(&new_channels)
@@ -52,18 +53,3 @@ impl DmxPort {
     }
 }
 
-pub struct DmxUniverse {
-    pub channels: [u8; 512],
-}
-
-impl DmxUniverse {
-    pub fn new() -> Arc<Mutex<DmxUniverse>> {
-        Arc::new(Mutex::new(DmxUniverse {
-            channels: [0u8; 512],
-        }))
-    }
-
-    pub fn set_channel(universe: Arc<Mutex<DmxUniverse>>, channel: usize, data: u8) {
-        universe.lock().unwrap().channels[channel as usize] = data;
-    }
-}

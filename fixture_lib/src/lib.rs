@@ -1,5 +1,5 @@
-mod fixture;
-mod universe;
+pub mod fixture;
+pub mod universe;
 
 #[cfg(test)]
 mod tests {
