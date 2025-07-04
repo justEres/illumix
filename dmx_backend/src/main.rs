@@ -5,6 +5,8 @@ use tracing::info;
 use tracing_subscriber;
 mod dmx;
 mod rgb_hex;
+mod server;
+
 
 fn main() {
     tracing_subscriber::fmt()
@@ -17,10 +19,10 @@ fn main() {
     let uni = DmxUniverse::new();
     info!("Created Dmx Universe.");
 
-    let port = DmxPort::open();
-    port.launch_send_thread(uni.clone());
+    /* let port = DmxPort::open();
+    port.launch_send_thread(uni.clone()); */
 
-    loop {
+    /* loop {
         println!("Enter color code:");
         print!("#");
         stdout().flush().unwrap();
@@ -33,5 +35,7 @@ fn main() {
         DmxUniverse::set_channel(uni.clone(), 2, color.b);
         DmxUniverse::set_channel(uni.clone(), 3, 255);
         info!("set color to: {:?}", color)
-    }
+    } */
+
+    server::start_ws_server(uni);
 }

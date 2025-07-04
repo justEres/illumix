@@ -16,7 +16,7 @@ mod tests {
     fn gen_dmx_universe(){
         let mut universe = Universe::new();
 
-        let mut led = Fixture::new(0, 1);
+        let mut led = Fixture::new(0, 1,"Led".into());
 
         led.add_component(fixture::FixtureComponent::Color(Color{r:255,g:03,b:100}));
         led.add_component(fixture::FixtureComponent::Dimmer(Dimmer { intensity: 50 }));

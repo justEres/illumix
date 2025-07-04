@@ -4,13 +4,14 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize,Deserialize)]
 pub struct Fixture{
     id: u8,
+    name: String,
     pub dmx_address: u16,
     components: Vec<FixtureComponent>,
 }
 
 impl Fixture{
-    pub fn new(id: u8, dmx_address: u16) -> Fixture{
-        Fixture { id, dmx_address, components: Vec::new() }
+    pub fn new(id: u8, dmx_address: u16, name: String) -> Fixture{
+        Fixture { id, dmx_address, components: Vec::new() , name}
     }
     pub fn add_component(&mut self, component: FixtureComponent){
         self.components.push(component);
