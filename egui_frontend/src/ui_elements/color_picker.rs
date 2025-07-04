@@ -1,5 +1,7 @@
 use eframe::egui::Color32;
 use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window};
+use eframe::emath::Numeric;
+
 
 
 
@@ -8,6 +10,7 @@ pub struct ColorPickerWindow{
     pub texture: egui::TextureHandle,
     pub width: usize,
     pub height: usize,
+    pub anchored: bool,
 } 
 
 
@@ -17,22 +20,27 @@ impl ColorPickerWindow {
         let height = 255;
         let image = generate_color_strip_image(width, height);
         let texture = ctx.load_texture("color_picker", image, egui::TextureOptions::LINEAR);
-
+        
         Self {
             selected_color: egui::Color32::WHITE,
             texture,
             width,
             height,
+            anchored: true,
         }
     }
 
+
+
     pub fn show(&mut self, ctx: &egui::Context) {
-        egui::Window::new("Color Picker").show(ctx, |ui| {
+        egui::Window::new("Color Picker").movable(self.anchored).show(ctx, |ui| {
+            
             ui.heading("Color Picker");
 
             let image_size = self.texture.size_vec2();
             let (rect, response) = ui.allocate_exact_size(image_size, egui::Sense::click());
 
+            /* draw_texture_with_circle(ui, self.texture.id(), egui::vec2(self.width as f32, self.height as f32)); */
             ui.painter().image(
                 self.texture.id(),
                 rect,
@@ -42,6 +50,7 @@ impl ColorPickerWindow {
                 ),
                 egui::Color32::WHITE,
             );
+            
 
             if response.hovered() && ui.input(|i| i.pointer.primary_clicked()) {
                 if let Some(click_pos) = response.interact_pointer_pos() {
@@ -56,6 +65,8 @@ impl ColorPickerWindow {
                 }
             }
 
+            
+
             ui.separator();
             ui.colored_label(self.selected_color, "Selected Color");
             ui.label(format!(
@@ -64,12 +75,46 @@ impl ColorPickerWindow {
                 self.selected_color.g(),
                 self.selected_color.b()
             ));
+
+
+            ui.checkbox(&mut self.anchored, "Window Movable")
         });
+
+        
     }
+
+    
+
+    
+
 }
 
 
+/* fn draw_texture_with_circle(ui: &mut egui::Ui, texture_id: egui::TextureId, texture_size: egui::Vec2) {
+    // Allocate space for the image and get response
+    let (response, painter) = ui.allocate_painter(texture_size, egui::Sense::click());
 
+    // Draw the texture
+    ui.painter().image(
+        texture_id,
+        response.rect,
+        egui::Rect::from_min_max(
+            egui::Pos2::new(0.0, 0.0),
+            egui::Pos2::new(1.0, 1.0),
+        ),
+        egui::Color32::WHITE,
+    );
+
+    // Draw the circle over the texture
+    let circle_center = response.rect.center() + Vec2{x:200.0,y:0.0}; // or pick any point in response.rect
+    let radius = 10.0;
+
+    painter.circle_stroke(
+        circle_center,
+        radius,
+        egui::Stroke::new(3.0, egui::Color32::RED),
+    );
+} */
 
 pub fn generate_color_strip_image(width: usize, height: usize) -> ColorImage {
     let mut pixels = Vec::with_capacity(width * height);
