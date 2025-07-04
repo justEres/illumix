@@ -5,7 +5,12 @@ edition = "2024"
 
 [dependencies]
 console_error_panic_hook = "0.1.7"
+derive = "1.0.0"
 eframe = "0.31.1"
+futures-sink = "0.3.31"
+futures-util = "0.3.31"
+gloo-net = "0.6.0"
+sink = "0.1.0"
 wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.50"
 wasm-logger = "0.2.0"
