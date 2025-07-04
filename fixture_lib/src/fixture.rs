@@ -1,74 +1,75 @@
 use serde::{Deserialize, Serialize};
 
-
-#[derive(Serialize,Deserialize)]
-pub struct Fixture{
+#[derive(Serialize, Deserialize)]
+pub struct Fixture {
     id: u8,
     name: String,
     pub dmx_address: u16,
     components: Vec<FixtureComponent>,
 }
 
-impl Fixture{
-    pub fn new(id: u8, dmx_address: u16, name: String) -> Fixture{
-        Fixture { id, dmx_address, components: Vec::new() , name}
+impl Fixture {
+    pub fn new(id: u8, dmx_address: u16, name: String) -> Fixture {
+        Fixture {
+            id,
+            dmx_address,
+            components: Vec::new(),
+            name,
+        }
     }
-    pub fn add_component(&mut self, component: FixtureComponent){
+    pub fn add_component(&mut self, component: FixtureComponent) {
         self.components.push(component);
     }
-    pub fn get_dmx_values(&self) -> Vec<u8>{
+    pub fn get_dmx_values(&self) -> Vec<u8> {
         let mut dmx_values = Vec::new();
-        for component in &self.components{
+        for component in &self.components {
             dmx_values.append(&mut component.get_dmx_values());
         }
         return dmx_values;
     }
-
 }
 
-#[derive(Serialize,Deserialize)]
-pub enum FixtureComponent{
+#[derive(Serialize, Deserialize)]
+pub enum FixtureComponent {
     Color(Color),
     Dimmer(Dimmer),
     Position(Position),
 }
 
-impl FixtureComponent{
-    fn get_dmx_values(&self) -> Vec<u8>{
-        match self{
+impl FixtureComponent {
+    fn get_dmx_values(&self) -> Vec<u8> {
+        match self {
             FixtureComponent::Color(c) => {
-                vec![c.r,c.g,c.b]
+                vec![c.r, c.g, c.b]
             }
             FixtureComponent::Dimmer(d) => {
                 vec![d.intensity]
             }
             FixtureComponent::Position(p) => {
                 let pan_lower = (p.pan & 0xFF) as u8;
-                let pan_higher = (p.pan >> 8) as u8; 
+                let pan_higher = (p.pan >> 8) as u8;
                 let tilt_lower = (p.tilt & 0xFF) as u8;
-                let tilt_higher = (p.tilt >> 8) as u8; 
-                vec![pan_higher,pan_lower,tilt_higher,tilt_lower]
+                let tilt_higher = (p.tilt >> 8) as u8;
+                vec![pan_higher, pan_lower, tilt_higher, tilt_lower]
             }
         }
     }
 }
 
-
-#[derive(Serialize,Deserialize,Default)]
-pub struct Color{
+#[derive(Serialize, Deserialize, Default)]
+pub struct Color {
     pub r: u8,
     pub g: u8,
-    pub b: u8
+    pub b: u8,
 }
 
-#[derive(Serialize,Deserialize,Default)]
-pub struct Dimmer{
+#[derive(Serialize, Deserialize, Default)]
+pub struct Dimmer {
     pub intensity: u8,
 }
 
-#[derive(Serialize,Deserialize,Default)]
-pub struct Position{
+#[derive(Serialize, Deserialize, Default)]
+pub struct Position {
     pub pan: u16,
     pub tilt: u16,
 }
-

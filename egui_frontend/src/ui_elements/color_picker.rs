@@ -2,17 +2,13 @@ use eframe::egui::Color32;
 use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window};
 use eframe::emath::Numeric;
 
-
-
-
-pub struct ColorPickerWindow{
+pub struct ColorPickerWindow {
     pub selected_color: egui::Color32,
     pub texture: egui::TextureHandle,
     pub width: usize,
     pub height: usize,
     pub anchored: bool,
-} 
-
+}
 
 impl ColorPickerWindow {
     pub fn new(ctx: &egui::Context) -> Self {
@@ -20,7 +16,7 @@ impl ColorPickerWindow {
         let height = 255;
         let image = generate_color_strip_image(width, height);
         let texture = ctx.load_texture("color_picker", image, egui::TextureOptions::LINEAR);
-        
+
         Self {
             selected_color: egui::Color32::WHITE,
             texture,
@@ -29,8 +25,6 @@ impl ColorPickerWindow {
             anchored: true,
         }
     }
-
-
 
     pub fn show(&mut self, ctx: &egui::Context) {
         egui::Window::new("Color Picker").movable(self.anchored).show(ctx, |ui| {
@@ -79,16 +73,8 @@ impl ColorPickerWindow {
 
             ui.checkbox(&mut self.anchored, "Window Movable")
         });
-
-        
     }
-
-    
-
-    
-
 }
-
 
 /* fn draw_texture_with_circle(ui: &mut egui::Ui, texture_id: egui::TextureId, texture_size: egui::Vec2) {
     // Allocate space for the image and get response
@@ -122,15 +108,11 @@ pub fn generate_color_strip_image(width: usize, height: usize) -> ColorImage {
     let mut zeropixel_height: u8 = 0;
 
     for y in 0..height {
-
-        
-
         for x in 0..width {
             let color = hue_at_pixel(x, width, pixel_height, zeropixel_height);
 
             pixels.push(color);
         }
-
 
         //pixel_height -= 1;
         zeropixel_height += 1;
@@ -190,6 +172,4 @@ pub fn lerp_rgb(from: (u8, u8, u8), to: (u8, u8, u8), t: f32) -> Color32 {
     )
 }
 
-pub fn color_picker(){
-
-}
+pub fn color_picker() {}

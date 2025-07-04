@@ -7,7 +7,6 @@ mod dmx;
 mod rgb_hex;
 mod server;
 
-
 fn main() {
     tracing_subscriber::fmt()
         .compact() // Pretty, human-readable output

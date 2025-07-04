@@ -8,7 +8,7 @@ pub struct RGB {
 ///HEX to RGB:
 /// Gibt einen Custom struct heraus.
 /// Nimmt ein Hex Code im format #ffffff.
-/// 
+///
 
 pub fn hex_to_rgb(hex_code: &str) -> RGB {
     let hex_r = &hex_code[1..3];
@@ -27,10 +27,9 @@ pub fn hex_to_rgb(hex_code: &str) -> RGB {
 ///RGB to HEX:
 /// gibt einen Hex Code im Format: #ffffff
 /// Nimmt drei u8 Variabeln r, g, b.
-/// 
+///
 
-pub fn rgb_to_hex(r: u8, g: u8, b: u8) -> String{
-
+pub fn rgb_to_hex(r: u8, g: u8, b: u8) -> String {
     let hex_code: String = format!("#{:02x}{:02x}{:02x}", r, g, b);
 
     return hex_code;
