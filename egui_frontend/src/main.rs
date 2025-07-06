@@ -1,11 +1,17 @@
+use std::sync::Arc;
+
+
 use eframe::App;
 use eframe::WebRunner;
 use eframe::egui::Color32;
+use eframe::egui::mutex::Mutex;
+use eframe::egui::scroll_area::State;
 use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window};
 use futures_util::StreamExt;
-use gloo_net::websocket::Message;
-use gloo_net::websocket::futures::WebSocket;
+
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::Closure;
+use web_sys::js_sys;
 use web_sys::window;
 #[path = "ui_elements/color_picker.rs"]
 mod color_picker;
@@ -14,10 +20,26 @@ use color_picker::ColorPickerWindow;
 #[path = "ui_elements/fixture_manager.rs"]
 mod fixture_manager;
 use fixture_manager::FixtureManager;
+mod websocket;
+
+use fixture_lib::universe::Universe;
+use web_sys::ErrorEvent;
+use web_sys::Event;
+use web_sys::MessageEvent;
+use web_sys::WebSocket;
+
+use crate::websocket::open_websocket;
+
+struct UniverseState {
+    pub universe: Universe,
+    pub modified: bool,
+}
 
 struct MyApp {
     color_picker: ColorPickerWindow,
     fixture_manager: FixtureManager,
+    universe: Arc<Mutex<UniverseState>>,
+    websocket: WebSocket
 }
 
 impl MyApp {
@@ -28,10 +50,43 @@ impl MyApp {
         let texture = cc
             .egui_ctx
             .load_texture("hue_strip", strip, egui::TextureOptions::LINEAR);
-        Self {
+
+        let universe = Arc::new(Mutex::new(UniverseState {
+                universe: Universe::new(),
+                modified: false,
+            }));
+
+        let ws = open_websocket(universe.clone());
+        let app = Self {
+            universe: universe.clone(),
+            websocket: ws,
             color_picker: ColorPickerWindow::new(&cc.egui_ctx),
             fixture_manager: FixtureManager::new(&cc.egui_ctx),
-        }
+        };
+
+        
+        
+
+
+
+        /* thread::spawn(async move || {
+            let mut ws = WebSocket::open("127.0.0.1:8080").unwrap();
+
+
+            let (mut write, mut read) = ws.split();
+
+            let res = match read.next().await.unwrap().unwrap(){
+                Message::Text(text) => {text},
+                _ => panic!(),
+            };
+
+            let mut state = uni.lock();
+            state.universe = serde_json::from_str(&res).unwrap();
+
+
+        }); */
+
+        return app;
     }
 }
 
@@ -39,8 +94,14 @@ impl App for MyApp {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         ctx.request_repaint();
 
-        //self.color_picker.show(ctx);
+        self.color_picker.show(ctx);
         self.fixture_manager.show(ctx);
+
+        if self.universe.lock().modified{
+            let uni = self.universe.lock().universe.export_to_json();
+            self.websocket.send_with_str(&uni);
+            self.universe.lock().modified = false;
+        }
 
         let color = self.color_picker.selected_color;
     }

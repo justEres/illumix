@@ -8,6 +8,7 @@ use serialport::SerialPort;
 use tracing::info;
 use fixture_lib::universe::Universe;
 
+
 pub struct DmxPort {
     serial_port: Box<dyn SerialPort>,
 }
