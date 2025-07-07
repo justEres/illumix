@@ -24,6 +24,10 @@ mod fixture_manager;
 use fixture_manager::FixtureManager;
 mod websocket;
 
+#[path = "ui_elements/fader_page.rs"]
+mod fader_page;
+use fader_page::FaderPage;
+
 use fixture_lib::universe::Universe;
 use web_sys::ErrorEvent;
 use web_sys::Event;
@@ -42,6 +46,7 @@ struct MyApp {
     fixture_manager: FixtureManager,
     universe: Arc<Mutex<UniverseState>>,
     websocket: WebSocket,
+    fader_page: FaderPage,
 }
 
 impl MyApp {
@@ -64,6 +69,7 @@ impl MyApp {
             websocket: ws,
             color_picker: ColorPickerWindow::new(&cc.egui_ctx),
             fixture_manager: FixtureManager::new(&cc.egui_ctx),
+            fader_page: FaderPage::new(&cc.egui_ctx),
         };
 
         return app;
@@ -74,8 +80,9 @@ impl App for MyApp {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         ctx.request_repaint();
 
-        self.color_picker.show(ctx);
-        self.fixture_manager.show(ctx);
+        //self.color_picker.show(ctx);
+        //self.fixture_manager.show(ctx);
+        self.fader_page.show(ctx);
 
         let color = self.color_picker.selected_color;   
 
@@ -100,11 +107,11 @@ impl App for MyApp {
         }
         self.universe.lock().modified = modified;
 
-        if self.universe.lock().modified {
+        /* if self.universe.lock().modified {
             let uni = self.universe.lock().universe.export_to_json();
             self.websocket.send_with_str(&uni);
             self.universe.lock().modified = false;
-        }
+        } */
 
         let color = self.color_picker.selected_color;
     }
