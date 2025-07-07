@@ -3,7 +3,7 @@ pub mod universe;
 
 #[cfg(test)]
 mod tests {
-    use std::{fs::File, future, io::Write};
+    use std::{fs::File, io::Write};
 
     use crate::{
         fixture::{Color, Dimmer, Fixture},

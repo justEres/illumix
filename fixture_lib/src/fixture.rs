@@ -29,7 +29,7 @@ impl Fixture {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum FixtureComponent {
     Color(Color),
     Dimmer(Dimmer),
@@ -56,19 +56,19 @@ impl FixtureComponent {
     }
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
     pub b: u8,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct Dimmer {
     pub intensity: u8,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct Position {
     pub pan: u16,
     pub tilt: u16,

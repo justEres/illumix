@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::fixture::{self, Fixture};
+use crate::fixture::Fixture;
 
 #[derive(Serialize, Deserialize)]
 pub struct Universe {

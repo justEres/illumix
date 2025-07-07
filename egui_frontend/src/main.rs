@@ -24,12 +24,19 @@ mod fixture_manager;
 use fixture_manager::FixtureManager;
 mod websocket;
 
+#[path = "ui_elements/universe_window.rs"]
+mod universe_window;
+
+#[path = "ui_elements/fixture_component_ui.rs"]
+mod fixture_component_ui;
+
 use fixture_lib::universe::Universe;
 use web_sys::ErrorEvent;
 use web_sys::Event;
 use web_sys::MessageEvent;
 use web_sys::WebSocket;
 
+use crate::universe_window::UniverseWindow;
 use crate::websocket::open_websocket;
 
 struct UniverseState {
@@ -40,6 +47,7 @@ struct UniverseState {
 struct MyApp {
     color_picker: ColorPickerWindow,
     fixture_manager: FixtureManager,
+    universe_window: UniverseWindow,
     universe: Arc<Mutex<UniverseState>>,
     websocket: WebSocket,
 }
@@ -64,6 +72,7 @@ impl MyApp {
             websocket: ws,
             color_picker: ColorPickerWindow::new(&cc.egui_ctx),
             fixture_manager: FixtureManager::new(&cc.egui_ctx),
+            universe_window: UniverseWindow::new(&cc.egui_ctx, universe.clone()),
         };
 
         return app;
@@ -75,30 +84,11 @@ impl App for MyApp {
         ctx.request_repaint();
 
         self.color_picker.show(ctx);
-        self.fixture_manager.show(ctx);
+        //self.fixture_manager.show(ctx);
+        self.universe_window.show(ctx);
 
-        let color = self.color_picker.selected_color;   
-
-
-        let mut modified = self.universe.lock().modified;
-        for fixture in &mut self.universe.lock().universe.fixtures {
-            if fixture.id == 0 {
-                for component in &mut fixture.components {
-                    match component {
-                        FixtureComponent::Color(c) => {
-                            if !(c.r == color.r() && c.g == color.g() && c.b == color.b()) {
-                                c.r = color.r();
-                                c.g = color.g();
-                                c.b = color.b();
-                                modified = true;
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
-        self.universe.lock().modified = modified;
+        self.universe_window
+            .sync_fixtures_with_color_picker(&self.color_picker);
 
         if self.universe.lock().modified {
             let uni = self.universe.lock().universe.export_to_json();

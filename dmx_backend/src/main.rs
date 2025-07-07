@@ -1,13 +1,16 @@
-use std::{io::{stdin, stdout, Write}, sync::{Arc, Mutex}};
+use std::sync::{Arc, Mutex};
 
-use crate::dmx::{DmxPort};
+use crate::dmx::DmxPort;
 use tracing::info;
 use tracing_subscriber;
 mod dmx;
 mod rgb_hex;
 mod server;
 
-use fixture_lib::{fixture::{Color, Dimmer, Fixture}, universe::Universe};
+use fixture_lib::{
+    fixture::{Color, Dimmer, Fixture},
+    universe::Universe,
+};
 
 fn main() {
     tracing_subscriber::fmt()
@@ -19,9 +22,23 @@ fn main() {
 
     let mut uni = Universe::new();
     let mut f = Fixture::new(0, 1, "Eurolite Led".into());
-    f.add_component(fixture_lib::fixture::FixtureComponent::Color(Color{r:0,g:0,b:255}));
-    f.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 255 }));
+    f.add_component(fixture_lib::fixture::FixtureComponent::Color(Color {
+        r: 0,
+        g: 0,
+        b: 255,
+    }));
+    f.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer {
+        intensity: 255,
+    }));
     uni.add_fixture(f);
+
+    /* let mut testf = Fixture::new(1, 400, "Käsekuchen".into());
+    testf.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 3 }));
+    testf.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 40 }));
+    testf.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 205}));
+    testf.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 50 }));
+
+    uni.add_fixture(testf); */
 
     let uni = Arc::new(Mutex::new(uni));
     info!("Created Dmx Universe.");

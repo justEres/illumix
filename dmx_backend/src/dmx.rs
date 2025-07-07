@@ -4,10 +4,9 @@ use std::{
     time::Duration,
 };
 
+use fixture_lib::universe::Universe;
 use serialport::SerialPort;
 use tracing::info;
-use fixture_lib::universe::Universe;
-
 
 pub struct DmxPort {
     serial_port: Box<dyn SerialPort>,
@@ -53,4 +52,3 @@ impl DmxPort {
         });
     }
 }
-
