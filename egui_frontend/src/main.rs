@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
-
 use eframe::App;
 use eframe::WebRunner;
+use eframe::egui::Button;
 use eframe::egui::Color32;
 use eframe::egui::mutex::Mutex;
 use eframe::egui::scroll_area::State;
 use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window};
+use fixture_lib::fixture::FixtureComponent;
+use fixture_lib::universe;
 use futures_util::StreamExt;
 
 use wasm_bindgen::JsCast;
@@ -39,7 +41,7 @@ struct MyApp {
     color_picker: ColorPickerWindow,
     fixture_manager: FixtureManager,
     universe: Arc<Mutex<UniverseState>>,
-    websocket: WebSocket
+    websocket: WebSocket,
 }
 
 impl MyApp {
@@ -52,9 +54,9 @@ impl MyApp {
             .load_texture("hue_strip", strip, egui::TextureOptions::LINEAR);
 
         let universe = Arc::new(Mutex::new(UniverseState {
-                universe: Universe::new(),
-                modified: false,
-            }));
+            universe: Universe::new(),
+            modified: false,
+        }));
 
         let ws = open_websocket(universe.clone());
         let app = Self {
@@ -63,28 +65,6 @@ impl MyApp {
             color_picker: ColorPickerWindow::new(&cc.egui_ctx),
             fixture_manager: FixtureManager::new(&cc.egui_ctx),
         };
-
-        
-        
-
-
-
-        /* thread::spawn(async move || {
-            let mut ws = WebSocket::open("127.0.0.1:8080").unwrap();
-
-
-            let (mut write, mut read) = ws.split();
-
-            let res = match read.next().await.unwrap().unwrap(){
-                Message::Text(text) => {text},
-                _ => panic!(),
-            };
-
-            let mut state = uni.lock();
-            state.universe = serde_json::from_str(&res).unwrap();
-
-
-        }); */
 
         return app;
     }
@@ -97,7 +77,30 @@ impl App for MyApp {
         self.color_picker.show(ctx);
         self.fixture_manager.show(ctx);
 
-        if self.universe.lock().modified{
+        let color = self.color_picker.selected_color;   
+
+
+        let mut modified = self.universe.lock().modified;
+        for fixture in &mut self.universe.lock().universe.fixtures {
+            if fixture.id == 0 {
+                for component in &mut fixture.components {
+                    match component {
+                        FixtureComponent::Color(c) => {
+                            if !(c.r == color.r() && c.g == color.g() && c.b == color.b()) {
+                                c.r = color.r();
+                                c.g = color.g();
+                                c.b = color.b();
+                                modified = true;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        self.universe.lock().modified = modified;
+
+        if self.universe.lock().modified {
             let uni = self.universe.lock().universe.export_to_json();
             self.websocket.send_with_str(&uni);
             self.universe.lock().modified = false;

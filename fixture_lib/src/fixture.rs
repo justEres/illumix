@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Fixture {
-    id: u8,
-    name: String,
+    pub id: u8,
+    pub name: String,
     pub dmx_address: u16,
-    components: Vec<FixtureComponent>,
+    pub components: Vec<FixtureComponent>,
 }
 
 impl Fixture {

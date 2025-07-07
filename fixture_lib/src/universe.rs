@@ -4,7 +4,7 @@ use crate::fixture::{self, Fixture};
 
 #[derive(Serialize, Deserialize)]
 pub struct Universe {
-    fixtures: Vec<Fixture>,
+    pub fixtures: Vec<Fixture>,
 }
 
 impl Universe {
