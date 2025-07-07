@@ -53,11 +53,17 @@ impl ColorPickerWindow {
 
                     let pixel_x = (relative_x * self.width as f32).floor() as usize;
                     let pixel_y = (relative_y * self.height as f32).floor() as usize;
-
-                    self.selected_color = hue_at_pixel(pixel_x, self.width, 255, pixel_y as u8);
+                    if !(pixel_y > self.height || pixel_y <= 0 || pixel_x > self.width || pixel_x <= 0){
+                        self.anchored = false;
+                        self.selected_color = hue_at_pixel(pixel_x, self.width, 255, pixel_y as u8);
+                    }
+                    
                     
                 }
+            }else {
+                self.anchored = true;
             }
+            
 
             
 
