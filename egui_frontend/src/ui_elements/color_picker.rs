@@ -45,9 +45,9 @@ impl ColorPickerWindow {
                 egui::Color32::WHITE,
             );
             
-
-            if response.hovered() && ui.input(|i| i.pointer.primary_clicked()) {
-                if let Some(click_pos) = response.interact_pointer_pos() {
+            if (ui.input(|i| i.pointer.primary_down())) {
+                
+                if let Some(click_pos) = ui.input(|i| i.pointer.latest_pos()) {
                     let relative_x = (click_pos.x - rect.min.x) / rect.width();
                     let relative_y = (click_pos.y - rect.min.y) / rect.height();
 
