@@ -26,7 +26,7 @@ pub fn start_ws_server(dmx_universe: Arc<Mutex<Universe>>) {
                 if msg.is_text() {
                     let new_uni = Universe::import_from_json(msg.to_text().unwrap());
                     *uni.lock().unwrap() = new_uni;
-                    println!("{}", uni.lock().unwrap().export_to_json());
+                    //println!("{}", uni.lock().unwrap().export_to_json());
                 }
             }
         });

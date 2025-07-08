@@ -30,15 +30,17 @@ impl UniverseWindow {
 
             let mut modified = false;
             for fixture in &mut self.universe.lock().universe.fixtures {
-                ui.collapsing(&fixture.name, |ui| {
-                    for component in &mut fixture.components {
-                        let mut comp = component.clone();
-                        draw_fixture_component(ui, &mut comp, fixture.id, &mut self.sync_color);
-                        if &comp != component {
-                            modified = true;
+                ui.push_id(fixture.id, |ui| {
+                    ui.collapsing(&fixture.name, |ui| {
+                        for component in &mut fixture.components {
+                            let mut comp = component.clone();
+                            draw_fixture_component(ui, &mut comp, fixture.id, &mut self.sync_color);
+                            if &comp != component {
+                                modified = true;
+                            }
+                            *component = comp;
                         }
-                        *component = comp;
-                    }
+                    });
                 });
             }
 

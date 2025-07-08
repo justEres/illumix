@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::{fs::File, io::Read, sync::{Arc, Mutex}};
 
 use crate::dmx::DmxPort;
 use tracing::info;
@@ -20,7 +20,14 @@ fn main() {
         .with_target(false) // Enable ANSI colors
         .init();
 
-    let mut uni = Universe::new();
+
+
+    let mut patching = File::open("patching.json").expect("Couldnt open file");
+    let mut contents = String::new();
+    patching.read_to_string(&mut contents).unwrap();
+    let mut uni = Universe::import_from_json(&contents);
+
+    /* let mut uni = Universe::new();
     let mut f = Fixture::new(0, 1, "Eurolite Led".into());
     f.add_component(fixture_lib::fixture::FixtureComponent::Color(Color {
         r: 0,
@@ -30,7 +37,7 @@ fn main() {
     f.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer {
         intensity: 255,
     }));
-    uni.add_fixture(f);
+    uni.add_fixture(f); */
 
     /* let mut testf = Fixture::new(1, 400, "Käsekuchen".into());
     testf.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 3 }));
@@ -44,7 +51,12 @@ fn main() {
     info!("Created Dmx Universe.");
 
     let port = DmxPort::open();
-    port.launch_send_thread(uni.clone());
+
+    //For normal dmx Backend
+    //port.launch_send_thread(uni.clone());
+
+    //For artnet support:
+    port.launch_artnet_send_thread(uni.clone());
 
     /* loop {
         println!("Enter color code:");

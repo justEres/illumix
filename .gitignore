@@ -3,4 +3,5 @@ fixture_lib/test_universe.json
 Cargo.lock
 
 
-
+.VSCodeCounter
+Cargo.lock

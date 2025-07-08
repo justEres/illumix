@@ -12,8 +12,6 @@ pub fn open_websocket(uni: Arc<Mutex<UniverseState>>) -> web_sys::WebSocket {
 
     ws.set_binary_type(web_sys::BinaryType::Arraybuffer);
 
-    let ws_clone = ws.clone();
-
     let onmessage_callback = Closure::wrap(Box::new(move |e: MessageEvent| {
         if let Ok(txt) = e.data().dyn_into::<js_sys::JsString>() {
             let universe: Universe = serde_json::from_str(&txt.as_string().unwrap()).unwrap();

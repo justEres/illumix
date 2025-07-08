@@ -1,10 +1,12 @@
 use std::{
+    net::UdpSocket,
     sync::{Arc, Mutex},
     thread,
     time::Duration,
 };
 
-use fixture_lib::universe::Universe;
+use artnet_protocol::{ArtCommand, Output};
+use fixture_lib::universe::{self, Universe};
 use serialport::SerialPort;
 use tracing::info;
 
@@ -28,8 +30,8 @@ impl DmxPort {
     }
 
     pub fn launch_send_thread(mut self, universe: Arc<Mutex<Universe>>) {
-        info!("Dmx tread started.");
         thread::spawn(move || {
+            info!("Dmx tread started.");
             let port = &mut self.serial_port;
 
             loop {
@@ -48,6 +50,25 @@ impl DmxPort {
                     .expect("Failed to write DMX data");
                 port.flush().ok();
                 thread::sleep(Duration::from_millis(25)); // ~40 FPS
+            }
+        });
+    }
+
+    pub fn launch_artnet_send_thread(mut self, universe: Arc<Mutex<Universe>>) {
+        thread::spawn(move || {
+            let socket = UdpSocket::bind(("0.0.0.0", 0)).unwrap();
+            info!("Created Socket for ArtNet");
+
+            loop {
+                let command = ArtCommand::Output(Output {
+                    data: Vec::from(universe.lock().unwrap().get_dmx_values()).into(),
+                    ..Output::default()
+                });
+
+                let buffer = command.write_to_buffer().expect("Failed to serialize");
+
+                socket.send_to(&buffer, ("127.0.0.1", 6454)).unwrap();
+                //info!("Sent Art-Net DMX");
             }
         });
     }
