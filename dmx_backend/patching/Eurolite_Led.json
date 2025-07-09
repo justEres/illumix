@@ -1,17 +1,17 @@
 {
     "name": "Eurolite Led",
     "components": [
-                {
-                    "Color": {
-                        "r": 0,
-                        "g": 0,
-                        "b": 0
-                    }
-                },
-                {
-                    "Dimmer": {
-                        "intensity": 0
-                    }
-                }
-            ]
+        {
+            "Color": {
+                "r": 0,
+                "g": 0,
+                "b": 0
+            }
+        },
+        {
+            "Dimmer": {
+                "intensity": 0
+            }
+        }
+    ]
 }

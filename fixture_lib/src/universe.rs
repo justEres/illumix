@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::fixture::Fixture;
+use crate::fixture::{self, Fixture};
 
 #[derive(Serialize, Deserialize,Debug)]
 pub struct Universe {
@@ -12,6 +12,15 @@ impl Universe {
         Universe {
             fixtures: Vec::new(),
         }
+    }
+
+    pub fn get_fixture_by_id(&self, id: u8) -> Option<&Fixture>{
+        for fixture in &self.fixtures{
+            if fixture.id == id{
+                return Some(&fixture);
+            }
+        }
+        None
     }
 
     pub fn get_dmx_values(&self) -> [u8; 512] {

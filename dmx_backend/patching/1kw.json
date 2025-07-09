@@ -1,11 +1,10 @@
 {
     "name": "1kw",
     "components": [
-                
-                {
-                    "Dimmer": {
-                        "intensity": 0
-                    }
-                }
-            ]
+        {
+            "Dimmer": {
+                "intensity": 0
+            }
+        }
+    ]
 }
