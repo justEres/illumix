@@ -29,6 +29,9 @@ mod universe_window;
 
 #[path = "ui_elements/fixture_component_ui.rs"]
 mod fixture_component_ui;
+#[path = "ui_elements/fader_page.rs"]
+mod fader_page;
+use fader_page::FaderPage;
 
 use fixture_lib::universe::Universe;
 use web_sys::ErrorEvent;
@@ -37,6 +40,7 @@ use web_sys::MessageEvent;
 use web_sys::WebSocket;
 
 use crate::universe_window::UniverseWindow;
+use crate::fader_page::Fader;
 use crate::websocket::open_websocket;
 
 struct UniverseState {
@@ -50,6 +54,8 @@ struct MyApp {
     universe_window: UniverseWindow,
     universe: Arc<Mutex<UniverseState>>,
     websocket: WebSocket,
+    fader_page: FaderPage,
+    //fader: FaderPage::Fader,
 }
 
 impl MyApp {
@@ -73,6 +79,8 @@ impl MyApp {
             color_picker: ColorPickerWindow::new(&cc.egui_ctx),
             fixture_manager: FixtureManager::new(&cc.egui_ctx),
             universe_window: UniverseWindow::new(&cc.egui_ctx, universe.clone()),
+            fader_page: FaderPage::new(&cc.egui_ctx),
+            //fader: self::fader_page,
         };
 
         return app;
@@ -91,12 +99,43 @@ impl App for MyApp {
 
         self.universe_window
             .sync_fixtures_with_color_picker(&self.color_picker);
+        //self.color_picker.show(ctx);
+        //self.fixture_manager.show(ctx);
+        self.fader_page.show(ctx);
 
-        if self.universe.lock().modified {
+        let color = self.color_picker.selected_color;   
+        Window::new("Test").show(ctx, |ui|{
+            for i in 0..32{
+                ui.label(format!("{}", self.fader_page.fader[i].fader_value));
+            }
+            
+        });
+
+        let mut modified = self.universe.lock().modified;
+        for fixture in &mut self.universe.lock().universe.fixtures {
+            if fixture.id == 0 {
+                for component in &mut fixture.components {
+                    match component {
+                        FixtureComponent::Color(c) => {
+                            if !(c.r == color.r() && c.g == color.g() && c.b == color.b()) {
+                                c.r = color.r();
+                                c.g = color.g();
+                                c.b = color.b();
+                                modified = true;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        self.universe.lock().modified = modified;
+
+        /* if self.universe.lock().modified {
             let uni = self.universe.lock().universe.export_to_json();
             self.websocket.send_with_str(&uni);
             self.universe.lock().modified = false;
-        }
+        } */
 
         let color = self.color_picker.selected_color;
     }
