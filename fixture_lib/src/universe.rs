@@ -23,6 +23,15 @@ impl Universe {
         None
     }
 
+    pub fn get_fixture_by_id_mut(&mut self, id: u8) -> Option<&mut Fixture>{
+        for fixture in &mut self.fixtures{
+            if fixture.id == id{
+                return Some(fixture);
+            }
+        }
+        None
+    }
+
     pub fn get_dmx_values(&self) -> [u8; 512] {
         let mut dmx_values = [0u8; 512];
         for fixture in &self.fixtures {
