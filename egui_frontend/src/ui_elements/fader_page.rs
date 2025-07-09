@@ -5,7 +5,7 @@ use wasm_bindgen::convert::IntoWasmAbi;
 
 
 pub struct FaderPage{
-    group_value: f32,
+    group_value: u8,
     y_offset: f32,
     
     button_pressed: [bool; 32],
@@ -20,18 +20,20 @@ pub struct FaderPage{
 #[derive(Clone)]
 pub struct Fader{
     pub id: Option<u8>,
-    pub fader_value: u16,
+    pub fader_value: u8,
     pub fader_selected: bool,
 }
 
 impl FaderPage{
     pub fn new(ctx: &egui::Context) -> Self {
         let mut fader = Vec::new();
-        for i in 0..32{
+        fader.push(Fader{id: Some(0), fader_value: 0, fader_selected: false});
+        for i in 1..=31{
             fader.push(Fader{id: None, fader_value: 0, fader_selected: false});
+            
         }
         Self{
-            group_value: 0.,
+            group_value: 0,
             y_offset: 0.,
             
             button_pressed: [false; 32],
@@ -94,7 +96,7 @@ impl FaderPage{
                     self.fader[i].fader_value = 0;
                 }
                 self.group_select= false;
-                self.group_value = 0.;
+                self.group_value = 0;
             }
             
         });
@@ -104,7 +106,7 @@ impl FaderPage{
         let widget_rect = 
             Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 20., y: 20.});
         ui.put(widget_rect,
-        egui::Slider::new(&mut self.group_value, 0.0..=100.0).show_value(false)
+        egui::Slider::new(&mut self.group_value, 0..=255).show_value(false)
             .orientation(egui::SliderOrientation::Vertical)
             //.handle_shape(egui::style::HandleShape::Rect { aspect_ratio: 1.5 })
         );
@@ -174,7 +176,7 @@ impl FaderPage{
             /* button = button.fill(Color32::DARK_RED); */
             self.draw_frame("".into(), ui, Vec2 { x: 10., y: 10. }, offset + Vec2 { x: 15., y: 292.5});
             if self.group_select{
-                self.fader[self.counter as usize].fader_value = self.group_value as u16;
+                self.fader[self.counter as usize].fader_value = self.group_value as u8;
             }
             
         }

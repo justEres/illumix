@@ -1,3 +1,6 @@
+
+use std::fmt::format;
+use std::path::Component;
 use std::sync::Arc;
 
 use eframe::App;
@@ -11,6 +14,7 @@ use fixture_lib::fixture::FixtureComponent;
 use fixture_lib::universe;
 use futures_util::StreamExt;
 
+use wasm_bindgen::convert::IntoWasmAbi;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::Closure;
 use web_sys::js_sys;
@@ -103,12 +107,52 @@ impl App for MyApp {
         //self.fixture_manager.show(ctx);
         self.fader_page.show(ctx);
 
+        for i in 0..32{
+            if self.fader_page.fader[i].id != None{
+                //self.universe.lock().universe.get_fixture_by_id(self.fader_page.fader[i].id);
+                let mut uni = self.universe.lock();
+                
+                let mut fixture_test = match uni.universe.get_fixture_by_id_mut(self.fader_page.fader[i].id.unwrap()) {
+                    Some(test) => {test},
+                    None => {return},
+                };
+                
+                for c in &mut fixture_test.components.iter_mut(){
+                    match c {
+                        FixtureComponent::Dimmer(d) => {
+                            
+                            d.intensity = self.fader_page.fader[i].fader_value;
+                            
+                        }
+                        _ => {}
+                    }
+                }
+                uni.modified = true;
+            }
+        }
+
         let color = self.color_picker.selected_color;   
         Window::new("Test").show(ctx, |ui|{
             for i in 0..32{
                 ui.label(format!("{}", self.fader_page.fader[i].fader_value));
             }
+            /* let mut uni = self.universe.lock();
             
+            let mut fixture_test = match uni.universe.get_fixture_by_id_mut(self.fader_page.fader[0].id.unwrap()) {
+                Some(test) => {test},
+                None => {return},
+            };
+            ui.label(format!("{:?}", fixture_test.components));
+            for c in &mut fixture_test.components.iter_mut(){
+                match c {
+                    FixtureComponent::Dimmer(d) => {
+                        ui.label(format!("{}", d.intensity));
+                        d.intensity = 100;
+                        ui.label(format!("{}", d.intensity));
+                    }
+                    _ => {}
+                }
+            } */
         });
 
         let mut modified = self.universe.lock().modified;
@@ -131,11 +175,11 @@ impl App for MyApp {
         }
         self.universe.lock().modified = modified;
 
-        /* if self.universe.lock().modified {
+        if self.universe.lock().modified {
             let uni = self.universe.lock().universe.export_to_json();
             self.websocket.send_with_str(&uni);
             self.universe.lock().modified = false;
-        } */
+        }
 
         let color = self.color_picker.selected_color;
     }
