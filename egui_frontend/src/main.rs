@@ -59,6 +59,7 @@ struct MyApp {
     universe: Arc<Mutex<UniverseState>>,
     websocket: WebSocket,
     fader_page: FaderPage,
+    universe_modified: bool,
     //fader: FaderPage::Fader,
 }
 
@@ -85,6 +86,7 @@ impl MyApp {
             universe_window: UniverseWindow::new(&cc.egui_ctx, universe.clone()),
             fader_page: FaderPage::new(&cc.egui_ctx),
             //fader: self::fader_page,
+            universe_modified: false,
         };
 
         return app;
@@ -97,7 +99,7 @@ impl App for MyApp {
 
         ctx.request_repaint();
 
-        self.color_picker.show(ctx);
+        //self.color_picker.show(ctx);
         //self.fixture_manager.show(ctx);
         self.universe_window.show(ctx);
 
@@ -120,14 +122,15 @@ impl App for MyApp {
                 for c in &mut fixture_test.components.iter_mut(){
                     match c {
                         FixtureComponent::Dimmer(d) => {
-                            
+                            self.universe_modified = true; // Wichtig: Steht hier weil ein Error gesagt hat uni kann nicht zwei mal geborrowed werden.KP
                             d.intensity = self.fader_page.fader[i].fader_value;
                             
                         }
                         _ => {}
                     }
                 }
-                uni.modified = true;
+                uni.modified = self.universe_modified;
+                
             }
         }
 

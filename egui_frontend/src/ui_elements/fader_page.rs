@@ -3,6 +3,9 @@ use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandl
 use egui::{ Frame, Margin};
 use wasm_bindgen::convert::IntoWasmAbi;
 
+mod fader_page_setup_window;
+use fader_page_setup_window::FaderPageSetupWindow;
+
 
 pub struct FaderPage{
     group_value: u8,
@@ -13,8 +16,11 @@ pub struct FaderPage{
     
     group_select: bool,
     counter: u8,
+    setup_toggle: bool,
 
     pub fader: Vec<Fader>,
+
+    setup_window: FaderPageSetupWindow,
 
 }
 #[derive(Clone)]
@@ -42,14 +48,18 @@ impl FaderPage{
             button_pressed: [false; 32],
             fader_manual_override: [false; 32],
             
+            setup_toggle: true,
+
             group_select: false,
             counter: 0,
             fader,
+            setup_window: FaderPageSetupWindow::new(ctx),
         }
     }
 
     pub fn show(&mut self, ctx: &egui::Context) {
         //ctx.set_pixels_per_point(2.);
+        
         egui::CentralPanel::default().show(ctx, |ui|{
 
 
@@ -100,6 +110,13 @@ impl FaderPage{
                 }
                 self.group_select= false;
                 self.group_value = 0;
+            }
+            if self.draw_button(ui, Vec2 { x: (60. * 9.) + 560., y: 600.}, "Setup".into(), Some(self.setup_toggle)){
+                self.setup_toggle = !self.setup_toggle;
+            }
+
+            if self.setup_toggle{
+                self.setup_window.show(ctx);
             }
             
         });
