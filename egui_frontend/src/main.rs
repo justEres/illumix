@@ -34,6 +34,7 @@ use web_sys::Event;
 use web_sys::MessageEvent;
 use web_sys::WebSocket;
 
+use crate::fader_page::Fader;
 use crate::websocket::open_websocket;
 
 struct UniverseState {
@@ -47,6 +48,7 @@ struct MyApp {
     universe: Arc<Mutex<UniverseState>>,
     websocket: WebSocket,
     fader_page: FaderPage,
+    //fader: FaderPage::Fader,
 }
 
 impl MyApp {
@@ -70,6 +72,7 @@ impl MyApp {
             color_picker: ColorPickerWindow::new(&cc.egui_ctx),
             fixture_manager: FixtureManager::new(&cc.egui_ctx),
             fader_page: FaderPage::new(&cc.egui_ctx),
+            //fader: self::fader_page,
         };
 
         return app;
@@ -85,7 +88,12 @@ impl App for MyApp {
         self.fader_page.show(ctx);
 
         let color = self.color_picker.selected_color;   
-
+        Window::new("Test").show(ctx, |ui|{
+            for i in 0..32{
+                ui.label(format!("{}", self.fader_page.fader[i].fader_value));
+            }
+            
+        });
 
         let mut modified = self.universe.lock().modified;
         for fixture in &mut self.universe.lock().universe.fixtures {
