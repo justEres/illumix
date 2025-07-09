@@ -81,6 +81,8 @@ impl MyApp {
 
 impl App for MyApp {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
+        
+
         ctx.request_repaint();
 
         self.color_picker.show(ctx);

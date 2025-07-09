@@ -8,8 +8,7 @@ mod rgb_hex;
 mod server;
 
 use fixture_lib::{
-    fixture::{Color, Dimmer, Fixture},
-    universe::Universe,
+    fixture::{Color, Dimmer, Fixture}, patching::Patching, universe::Universe
 };
 
 fn main() {
@@ -22,37 +21,19 @@ fn main() {
 
 
 
-    let mut patching = File::open("patching.json").expect("Couldnt open file");
-    let mut contents = String::new();
-    patching.read_to_string(&mut contents).unwrap();
-    let mut uni = Universe::import_from_json(&contents);
+    let mut patching = Patching::load_from_file("patching/patching.json".into());
+    
+    let mut uni = patching.to_universe();
 
-    /* let mut uni = Universe::new();
-    let mut f = Fixture::new(0, 1, "Eurolite Led".into());
-    f.add_component(fixture_lib::fixture::FixtureComponent::Color(Color {
-        r: 0,
-        g: 0,
-        b: 255,
-    }));
-    f.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer {
-        intensity: 255,
-    }));
-    uni.add_fixture(f); */
-
-    /* let mut testf = Fixture::new(1, 400, "Käsekuchen".into());
-    testf.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 3 }));
-    testf.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 40 }));
-    testf.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 205}));
-    testf.add_component(fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer { intensity: 50 }));
-
-    uni.add_fixture(testf); */
+    
 
     let uni = Arc::new(Mutex::new(uni));
     info!("Created Dmx Universe.");
 
-    //let port = DmxPort::open();
+    
 
     //For normal dmx Backend
+    //let port = DmxPort::open();
     //port.launch_send_thread(uni.clone());
 
     //For artnet support:
