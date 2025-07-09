@@ -128,7 +128,7 @@
 
         {
             "dmx_address":154,
-            "id": 1,
+            "id": 25,
             "fixture_preset": "patching/ColorWash1200.json"
         }
     ]
