@@ -1,10 +1,131 @@
 {
     "fixtures": [
         {
-            "dmx_address": 12,
-            "id": 0,
+            "dmx_address": 1,
+            "id": 1,
             "fixture_preset": "patching/1kw.json"
         },
+        {
+            "dmx_address": 2,
+            "id": 2,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 3,
+            "id": 3,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 4,
+            "id": 4,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 5,
+            "id": 5,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 6,
+            "id": 6,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 7,
+            "id": 7,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 8,
+            "id": 8,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 9,
+            "id": 9,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 10,
+            "id": 10,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 11,
+            "id": 11,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 12,
+            "id": 12,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 13,
+            "id": 13,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 14,
+            "id": 14,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 15,
+            "id": 15,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 16,
+            "id": 16,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 17,
+            "id": 17,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 18,
+            "id": 18,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 19,
+            "id": 19,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 20,
+            "id": 20,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 20,
+            "id": 20,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 21,
+            "id": 21,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 22,
+            "id": 22,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 23,
+            "id": 23,
+            "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address": 24,
+            "id": 24,
+            "fixture_preset": "patching/1kw.json"
+        },
+
         {
             "dmx_address":154,
             "id": 1,
