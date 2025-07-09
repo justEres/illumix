@@ -50,13 +50,13 @@ fn main() {
     let uni = Arc::new(Mutex::new(uni));
     info!("Created Dmx Universe.");
 
-    let port = DmxPort::open();
+    //let port = DmxPort::open();
 
     //For normal dmx Backend
     //port.launch_send_thread(uni.clone());
 
     //For artnet support:
-    port.launch_artnet_send_thread(uni.clone());
+    DmxPort::launch_artnet_send_thread(uni.clone());
 
     /* loop {
         println!("Enter color code:");

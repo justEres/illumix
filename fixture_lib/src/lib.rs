@@ -1,13 +1,13 @@
 pub mod fixture;
 pub mod universe;
+pub mod patching;
 
 #[cfg(test)]
 mod tests {
     use std::{fs::File, io::Write};
 
     use crate::{
-        fixture::{Color, Dimmer, Fixture},
-        universe::Universe,
+        fixture::{Color, Dimmer, Fixture, FixtureComponent}, patching::Patching, universe::Universe
     };
 
     use super::*;
@@ -31,5 +31,22 @@ mod tests {
         file.write_all(universe.export_to_json().as_bytes())
             .expect("Couldnt write to file");
         dbg!(universe.get_dmx_values());
+    }
+
+    #[test]
+    fn gen_patching() {
+        let fixture = patching::FixturePreset{ name: "1kw".into(), components: vec![FixtureComponent::Dimmer(Dimmer { intensity: 0 })]};
+
+        fixture.store_to_file("1kw.json".into());
+
+        let mut patching = Patching::new();
+        patching.fixtures.push(patching::Fixture{ id: 0, dmx_address: 12, fixture_preset: "1kw.json".into()});
+        patching.store_to_file("patching.json".into());
+
+        dbg!(patching.to_universe());
+
+        
+
+
     }
 }

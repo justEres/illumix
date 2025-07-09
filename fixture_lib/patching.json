@@ -1,0 +1,9 @@
+{
+    "fixtures": [
+        {
+            "dmx_address": 12,
+            "id": 0,
+            "fixture_preset": "1kw.json"
+        }
+    ]
+}

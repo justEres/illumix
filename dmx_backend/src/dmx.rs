@@ -54,7 +54,7 @@ impl DmxPort {
         });
     }
 
-    pub fn launch_artnet_send_thread(mut self, universe: Arc<Mutex<Universe>>) {
+    pub fn launch_artnet_send_thread(universe: Arc<Mutex<Universe>>) {
         thread::spawn(move || {
             let socket = UdpSocket::bind(("0.0.0.0", 0)).unwrap();
             info!("Created Socket for ArtNet");

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixture::Fixture;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,Debug)]
 pub struct Universe {
     pub fixtures: Vec<Fixture>,
 }
