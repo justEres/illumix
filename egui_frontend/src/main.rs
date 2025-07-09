@@ -114,7 +114,7 @@ impl App for MyApp {
                 
                 let mut fixture_test = match uni.universe.get_fixture_by_id_mut(self.fader_page.fader[i].id.unwrap()) {
                     Some(test) => {test},
-                    None => {return},
+                    None => {continue;},
                 };
                 
                 for c in &mut fixture_test.components.iter_mut(){
@@ -155,25 +155,7 @@ impl App for MyApp {
             } */
         });
 
-        let mut modified = self.universe.lock().modified;
-        for fixture in &mut self.universe.lock().universe.fixtures {
-            if fixture.id == 0 {
-                for component in &mut fixture.components {
-                    match component {
-                        FixtureComponent::Color(c) => {
-                            if !(c.r == color.r() && c.g == color.g() && c.b == color.b()) {
-                                c.r = color.r();
-                                c.g = color.g();
-                                c.b = color.b();
-                                modified = true;
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
-        self.universe.lock().modified = modified;
+        
 
         if self.universe.lock().modified {
             let uni = self.universe.lock().universe.export_to_json();

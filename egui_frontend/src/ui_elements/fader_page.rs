@@ -27,9 +27,12 @@ pub struct Fader{
 impl FaderPage{
     pub fn new(ctx: &egui::Context) -> Self {
         let mut fader = Vec::new();
-        fader.push(Fader{id: Some(0), fader_value: 0, fader_selected: false});
-        for i in 1..=31{
-            fader.push(Fader{id: None, fader_value: 0, fader_selected: false});
+
+        
+        
+
+        for i in 0..=31{
+            fader.push(Fader{id: Some(i), fader_value: 0, fader_selected: false});
             
         }
         Self{
