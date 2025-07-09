@@ -1,3 +1,5 @@
+use std::vec;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize,Debug)]
@@ -34,6 +36,9 @@ pub enum FixtureComponent {
     Color(Color),
     Dimmer(Dimmer),
     Position(Position),
+    Placeholder,
+    ColorWheel(ColorWheel),
+    CustomValue(CustomValue),
 }
 
 impl FixtureComponent {
@@ -51,6 +56,15 @@ impl FixtureComponent {
                 let tilt_lower = (p.tilt & 0xFF) as u8;
                 let tilt_higher = (p.tilt >> 8) as u8;
                 vec![pan_higher, pan_lower, tilt_higher, tilt_lower]
+            }
+            FixtureComponent::Placeholder => {
+                vec![0]
+            }
+            FixtureComponent::ColorWheel(c) =>{
+                vec![c.index]
+            }
+            FixtureComponent::CustomValue(c) => {
+                vec![c.value]
             }
         }
     }
@@ -72,4 +86,16 @@ pub struct Dimmer {
 pub struct Position {
     pub pan: u16,
     pub tilt: u16,
+}
+
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+pub struct ColorWheel{
+    pub index: u8,
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+pub struct CustomValue{
+    pub name: String,
+    pub value: u8,
 }

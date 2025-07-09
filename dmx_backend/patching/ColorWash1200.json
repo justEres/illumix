@@ -1,0 +1,76 @@
+{
+    "name": "Color Wash",
+    "components": [
+        {
+            "Position": {
+                "pan": 0,
+                "tilt": 0
+            }
+        },
+        "Placeholder",
+        "Placeholder",
+        {
+            "ColorWheel": {
+                "index": 0
+            }
+        },
+        {
+            "ColorWheel": {
+                "index": 0
+            }
+        },
+        {
+            "CustomValue":{
+                "name": "Cyan",
+                "value": 0
+            }
+        },
+        {
+            "CustomValue":{
+                "name": "Magenta",
+                "value": 0
+            }
+        },
+        {
+            "CustomValue":{
+                "name": "Cyan",
+                "value": 0
+            }
+        },
+        {
+            "CustomValue":{
+                "name": "Temperature",
+                "value": 0
+            }
+        },
+        {
+            "CustomValue":{
+                "name": "Effect speed",
+                "value": 0
+            }
+        },
+        {
+            "CustomValue":{
+                "name": "Fresnels opening",
+                "value": 0
+            }
+        },
+        {
+            "CustomValue":{
+                "name": "Zoom",
+                "value": 0
+            }
+        },
+        {
+            "CustomValue":{
+                "name": "Shutter, strobe",
+                "value": 0
+            }
+        },
+        {
+            "Dimmer":{
+                "intensity": 0
+            }
+        }
+    ]
+}

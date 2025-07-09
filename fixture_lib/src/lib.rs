@@ -39,6 +39,8 @@ mod tests {
 
         fixture.store_to_file("1kw.json".into());
 
+
+
         let mut patching = Patching::new();
         patching.fixtures.push(patching::Fixture{ id: 0, dmx_address: 12, fixture_preset: "1kw.json".into()});
         patching.store_to_file("patching.json".into());
@@ -48,5 +50,14 @@ mod tests {
         
 
 
+    }
+
+
+    #[test]
+    fn temp(){
+        let mut fixture = Fixture::new(1, 12, "leck mich im arsch".into());
+        fixture.add_component(FixtureComponent::Placeholder);
+
+        println!("{}",serde_json::to_string(&fixture).unwrap());
     }
 }

@@ -4,6 +4,11 @@
             "dmx_address": 12,
             "id": 0,
             "fixture_preset": "patching/1kw.json"
+        },
+        {
+            "dmx_address":154,
+            "id": 1,
+            "fixture_preset": "patching/ColorWash1200.json"
         }
     ]
 }
