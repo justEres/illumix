@@ -1,6 +1,7 @@
 pub mod fixture;
 pub mod universe;
 pub mod patching;
+pub mod networking;
 
 #[cfg(test)]
 mod tests {
