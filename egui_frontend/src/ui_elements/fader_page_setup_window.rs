@@ -1,23 +1,29 @@
-use eframe::egui::{pos2, Color32, Pos2, Rect};
-use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window,Ui, Button, DragValue};
+use eframe::egui::{pos2, Color32, Label, Pos2, Rect};
+use eframe::egui::{vec2,self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window,Ui, Button, DragValue};
 use egui::{ Frame, Margin};
 use wasm_bindgen::convert::IntoWasmAbi;
 
 
+use crate::fader_page::Fader;
+
+
 pub struct FaderPageSetupWindow{
     selected_fader: u8,
+    fader_patch: u8,
     test: i32,
 }
+
 
 impl FaderPageSetupWindow{
     pub fn new(ctx: &egui::Context) -> Self{
         Self{
             selected_fader: 1,
+            fader_patch: 0,
             test: 1
         }
     }
 
-    pub fn show(&mut self, ctx: &egui::Context){
+    pub fn show(&mut self, ctx: &egui::Context, fader: &mut Vec<Fader>){
         Window::new("Setup Fader Page").show(ctx, |ui|{
             
             if self.selected_fader < 32{
@@ -28,17 +34,30 @@ impl FaderPageSetupWindow{
             
 
             self.draw_frame(format!("{}",self.selected_fader), ui, Vec2 { x: 40., y: 40. }, Vec2 { x: 0., y: 60. }, Color32::DARK_GRAY);
+            
             if self.selected_fader > 1{
                 if self.draw_button(ui, Vec2 { x: 0., y: 120.}, "⬇".into(), None){
                     self.selected_fader -= 1;
                 }
     
             }
+
+            
+            
+            self.fader_patch = fader[self.selected_fader as usize - 1].id.unwrap();
+            self.draw_drag_value(ui, Vec2 { x: 60., y: 60. }, "Fixture ID: ".into());
+            fader[self.selected_fader as usize - 1].id = Some(self.fader_patch);
             
         });
     }
 
-
+    fn draw_drag_value(&mut self, ui: &mut Ui, offset: Vec2, name: String){
+        
+        let rect = Rect::from_min_size(ui.min_rect().min + offset, vec2(20.0, 10.0));
+        let label_rect = Rect::from_min_size(ui.min_rect().min + (offset - vec2(10., 30.)), vec2(40.0, 10.0));
+        ui.put(label_rect, Label::new(name));
+        ui.put(rect, DragValue::new(&mut self.fader_patch).clamp_range(0..=32));
+    }
 
 
 

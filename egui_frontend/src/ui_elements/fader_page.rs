@@ -38,7 +38,7 @@ impl FaderPage{
         
 
         for i in 0..=31{
-            fader.push(Fader{id: Some(i), fader_value: 0, fader_selected: false});
+            fader.push(Fader{id: Some(0), fader_value: 0, fader_selected: false});
             
         }
         Self{
@@ -116,7 +116,7 @@ impl FaderPage{
             }
 
             if self.setup_toggle{
-                self.setup_window.show(ctx);
+                self.setup_window.show(ctx,&mut self.fader);
             }
             
         });

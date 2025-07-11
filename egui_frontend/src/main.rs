@@ -137,7 +137,7 @@ impl App for MyApp {
         let color = self.color_picker.selected_color;   
         Window::new("Test").show(ctx, |ui|{
             for i in 0..32{
-                ui.label(format!("{}", self.fader_page.fader[i].fader_value));
+                ui.label(format!("{}", self.fader_page.fader[i].id.unwrap()));
             }
             /* let mut uni = self.universe.lock();
             
