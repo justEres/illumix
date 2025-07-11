@@ -101,11 +101,6 @@
             "fixture_preset": "patching/1kw.json"
         },
         {
-            "dmx_address": 20,
-            "id": 20,
-            "fixture_preset": "patching/1kw.json"
-        },
-        {
             "dmx_address": 21,
             "id": 21,
             "fixture_preset": "patching/1kw.json"
@@ -125,7 +120,6 @@
             "id": 24,
             "fixture_preset": "patching/1kw.json"
         },
-
         {
             "dmx_address":154,
             "id": 25,
