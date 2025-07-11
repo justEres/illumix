@@ -4,7 +4,7 @@ A custom lighting software written in rust.
  <img width="auto" height="100" alt="Illumix Logo" src="https://github.com/user-attachments/assets/194f0473-11ee-4631-b2cf-2e5cc24b1ebf"/>
 
 ### Project board:
-If you want to see the progress, the project board can bee seen [here](https://github.com/users/justEres/projects/2)
+If you want to see the progress, the project board can be seen [here](https://github.com/users/justEres/projects/2)
 
  ### Tech Stack:
  As already said, both the frontend and the backend are written in rust.  
