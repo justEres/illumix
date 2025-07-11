@@ -1,22 +1,28 @@
 use serde::{Deserialize, Serialize};
 
-use crate::universe::Universe;
+use crate::{fixture::FixtureComponent, universe::Universe};
 
 
 
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize,Deserialize,Debug)]
 pub struct Packet{
-    packet_type: PacketType,
+    pub packet_type: PacketType,
 
 }
 
 
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize,Deserialize,Debug)]
 pub enum PacketType{
     RequestFullUniverse,
-    FullUniverse(Universe)
+    FullUniverse(Universe),
+    FixtureComponentUpdated(FixtureComponentUpdated),
 }
 
+#[derive(Serialize,Deserialize,Debug)]
+pub struct FixtureComponentUpdated{
+    pub component: FixtureComponent,
+    pub fixture_id: u8,
+}
 
 impl Packet{
     pub fn serialize(self) -> Vec<u8>{
