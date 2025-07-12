@@ -9,8 +9,9 @@ use crate::fader_page::Fader;
 
 pub struct FaderPageSetupWindow{
     selected_fader: u8,
-    fader_patch: u8,
+    fader_patch: i8,
     test: i32,
+    patch_view: bool,
 }
 
 
@@ -19,7 +20,8 @@ impl FaderPageSetupWindow{
         Self{
             selected_fader: 1,
             fader_patch: 0,
-            test: 1
+            test: 1,
+            patch_view: false,
         }
     }
 
@@ -42,11 +44,51 @@ impl FaderPageSetupWindow{
     
             }
 
+            match fader[self.selected_fader as usize - 1].id{
+                Some(T) => {
+                    self.fader_patch = fader[self.selected_fader as usize - 1].id.unwrap() as i8;
+                }
+                None => {
+                    self.fader_patch = -1
+                }
+            }
             
             
-            self.fader_patch = fader[self.selected_fader as usize - 1].id.unwrap();
             self.draw_drag_value(ui, Vec2 { x: 60., y: 60. }, "Fixture ID: ".into());
-            fader[self.selected_fader as usize - 1].id = Some(self.fader_patch);
+
+            match self.fader_patch{
+                -1 => {
+                    fader[self.selected_fader as usize - 1].id = None;
+                }
+                _ => {
+                    fader[self.selected_fader as usize - 1].id = Some(self.fader_patch as u8);
+                }
+            }
+
+            if self.draw_button(ui, Vec2 { x: 50., y: 120.}, "View Patch".into(), None){
+                self.patch_view = !self.patch_view;
+            }
+            
+            
+            if self.patch_view == false{
+                for i in 0..32{
+                    fader[i].fader_value = 0;
+                    if i == (self.selected_fader as usize - 1){
+                        fader[i].fader_selected = true;
+                    }else{
+                        fader[i].fader_selected = false;
+                    }
+                }
+            }else{
+                for i in 0..32{
+                    fader[i].fader_value = 0;
+                    fader[i].fader_selected = true;
+                }
+            }
+            
+            
+
+
             
         });
     }
@@ -56,7 +98,7 @@ impl FaderPageSetupWindow{
         let rect = Rect::from_min_size(ui.min_rect().min + offset, vec2(20.0, 10.0));
         let label_rect = Rect::from_min_size(ui.min_rect().min + (offset - vec2(10., 30.)), vec2(40.0, 10.0));
         ui.put(label_rect, Label::new(name));
-        ui.put(rect, DragValue::new(&mut self.fader_patch).clamp_range(0..=32));
+        ui.put(rect, DragValue::new(&mut self.fader_patch).clamp_range(-1..=32));
     }
 
 
