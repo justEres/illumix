@@ -1,6 +1,4 @@
-use eframe::egui::{
-    self, Button, Ui, Vec2,
-};
+use eframe::egui::{self, Button, Ui, Vec2};
 use eframe::egui::{Color32, Rect};
 
 mod fader_page_setup_window;

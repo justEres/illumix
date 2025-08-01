@@ -1,7 +1,4 @@
-use eframe::egui::{
-    self, Button, DragValue, Ui, Vec2,
-    Window, vec2,
-};
+use eframe::egui::{self, Button, DragValue, Ui, Vec2, Window, vec2};
 use eframe::egui::{Color32, Label, Rect};
 
 use crate::fader_page::Fader;
