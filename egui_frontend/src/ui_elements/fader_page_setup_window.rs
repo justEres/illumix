@@ -12,6 +12,7 @@ pub struct FaderPageSetupWindow{
     fader_patch: i8,
     test: i32,
     patch_view: bool,
+    screen_size: Vec2,
 }
 
 
@@ -22,11 +23,24 @@ impl FaderPageSetupWindow{
             fader_patch: 0,
             test: 1,
             patch_view: false,
+            screen_size: Vec2 { x: 0., y: 0. }
         }
     }
 
     pub fn show(&mut self, ctx: &egui::Context, fader: &mut Vec<Fader>){
         Window::new("Setup Fader Page").show(ctx, |ui|{
+
+            self.screen_size = ui.available_size();
+
+            let mut style = (*ctx.style()).clone();
+            style.spacing.slider_width = ((self.screen_size.y / 100.) * 5.); // Wider slider
+            style.spacing.interact_size.y = ((self.screen_size.y / 100.) * 6.); // Taller handle
+            //style.spacing.interact_size.x = ((self.screen_size.x / 100.) * 4.);
+            style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
+            
+            ctx.set_style(style);
+            
+            
             
             if self.selected_fader < 32{
                 if self.draw_button(ui, Vec2 { x: 0., y: 0.}, "⬆".into(), None){

@@ -1,4 +1,4 @@
-use eframe::egui::{Color32, Pos2, Rect};
+use eframe::egui::{Color32, Pos2, Rect, Style};
 use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window,Ui, Button};
 use egui::{ Frame, Margin};
 use wasm_bindgen::convert::IntoWasmAbi;
@@ -27,6 +27,10 @@ pub struct FaderPage{
 
 
     screen_size: Vec2,
+
+    original_style: Style,
+
+    
 }
 #[derive(Clone)]
 pub struct Fader{
@@ -68,7 +72,9 @@ impl FaderPage{
             selection_save,
             fader_value_save,
 
-            screen_size: Vec2 { x: 0., y: 0. }
+            screen_size: Vec2 { x: 0., y: 0. },
+
+            original_style: (*ctx.style()).clone(),
         }
     }
 
@@ -79,18 +85,16 @@ impl FaderPage{
 
             self.screen_size = ui.available_size();
             
-            
-
-
-            /// Styling
+            let original_style = ui.ctx().style().clone();
+            // Styling
             let mut style = (*ctx.style()).clone();
             style.spacing.slider_width = ((self.screen_size.y / 100.) * 37.5); // Wider slider
             style.spacing.interact_size.y = ((self.screen_size.y / 100.) * 6.); // Taller handle
             //style.spacing.interact_size.x = ((self.screen_size.x / 100.) * 4.);
             style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
             
-            ctx.set_style(style);
-
+            ui.set_style(style.clone());
+            
             self.counter = 0;
 
 
@@ -169,11 +173,17 @@ impl FaderPage{
             
             
             
+            
+            
 
             if self.setup_toggle{
                 self.setup_window.show(ctx,&mut self.fader);
                 self.group_select = false;
             }
+
+            
+
+            
             
         });
     }
@@ -202,7 +212,7 @@ impl FaderPage{
                 
             }
             if pressed.unwrap(){
-                self.draw_frame("".into(), ui, Vec2 { x: ((self.screen_size.y / 100.) * 1.), y: ((self.screen_size.y / 100.) * (((self.screen_size.y / 100.) * 10.) /100.))}, offset + Vec2 { x: ((self.screen_size.y / 100.) * 2.5), y: ((self.screen_size.y / 100.) * 0.5s)} ,Color32::from_rgb(255, 200, 120));
+                self.draw_frame("".into(), ui, Vec2 { x: ((self.screen_size.y / 100.) * 1.), y: ((self.screen_size.y / 100.) * (((self.screen_size.y / 100.) * 10.) /100.))}, offset + Vec2 { x: ((self.screen_size.y / 100.) * 2.5), y: ((self.screen_size.y / 100.) * 0.5)} ,Color32::from_rgb(255, 200, 120));
             }
         }
         
