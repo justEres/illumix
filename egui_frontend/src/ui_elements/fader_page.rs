@@ -198,7 +198,7 @@ impl FaderPage {
                 pressed = Some(!pressed.unwrap());
             }
             if pressed.unwrap(){
-                self.draw_frame("".into(), ui, Vec2 { x: ((self.screen_size.y / 100.) * 1.), y: ((self.screen_size.y / 100.) * (((self.screen_size.y / 100.) * 10.) /100.))}, offset + Vec2 { x: ((self.screen_size.y / 100.) * 2.5), y: ((self.screen_size.y / 100.) * 0.5s)} ,Color32::from_rgb(255, 200, 120));
+                self.draw_frame("".into(), ui, Vec2 { x: ((self.screen_size.y / 100.) * 1.), y: ((self.screen_size.y / 100.) * (((self.screen_size.y / 100.) * 10.) /100.))}, offset + Vec2 { x: ((self.screen_size.y / 100.) * 2.5), y: ((self.screen_size.y / 100.) * 0.5)} ,Color32::from_rgb(255, 200, 120));
             }
         }
 
