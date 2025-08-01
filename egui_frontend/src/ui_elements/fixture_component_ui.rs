@@ -18,17 +18,17 @@ pub fn draw_fixture_component(
             );
         }
         FixtureComponent::Dimmer(d) => {
-            ui.horizontal(|ui|{
+            ui.horizontal(|ui| {
                 ui.label("Dimmer: ");
                 ui.add(Slider::new(&mut d.intensity, 0..=u8::MAX));
             });
         }
         FixtureComponent::Position(p) => {
-            ui.horizontal(|ui|{
+            ui.horizontal(|ui| {
                 ui.label("Pan: ");
                 ui.add(Slider::new(&mut p.pan, 0..=u16::MAX));
             });
-            ui.horizontal(|ui|{
+            ui.horizontal(|ui| {
                 ui.label("Tilt: ");
                 ui.add(Slider::new(&mut p.tilt, 0..=u16::MAX));
             });

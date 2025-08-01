@@ -1,3 +1,5 @@
+use std::fmt::format;
+use std::path::Component;
 use std::sync::Arc;
 
 use eframe::App;
@@ -7,6 +9,9 @@ use eframe::egui::{self, Context, Window};
 use fixture_lib::fixture::FixtureComponent;
 
 use wasm_bindgen::JsCast;
+use wasm_bindgen::convert::IntoWasmAbi;
+use wasm_bindgen::prelude::Closure;
+use web_sys::js_sys;
 use web_sys::window;
 #[path = "ui_elements/color_picker.rs"]
 mod color_picker;
@@ -29,6 +34,7 @@ use fader_page::FaderPage;
 use fixture_lib::universe::Universe;
 use web_sys::WebSocket;
 
+use crate::fader_page::Fader;
 use crate::universe_window::UniverseWindow;
 use crate::websocket::open_websocket;
 
@@ -97,7 +103,7 @@ impl App for MyApp {
                 //self.universe.lock().universe.get_fixture_by_id(self.fader_page.fader[i].id);
                 let mut uni = self.universe.lock();
 
-                let fixture_test = match uni
+                let mut fixture_test = match uni
                     .universe
                     .get_fixture_by_id_mut(self.fader_page.fader[i].id.unwrap())
                 {
@@ -123,7 +129,7 @@ impl App for MyApp {
         let color = self.color_picker.selected_color;
         Window::new("Test").show(ctx, |ui| {
             for i in 0..32 {
-                ui.label(format!("{}", self.fader_page.fader[i].id.unwrap()));
+                ui.label(format!("{}", self.fader_page.fader[i].id.unwrap_or(0)));
             }
             /* let mut uni = self.universe.lock();
 
