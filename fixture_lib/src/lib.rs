@@ -8,7 +8,7 @@ mod tests {
     use std::{fs::File, io::Write};
 
     use crate::{
-        fixture::{Color, Dimmer, Fixture, FixtureComponent}, patching::Patching, universe::Universe
+        fixture::{Color, Dimmer, Fixture, FixtureComponent}, networking::Packet, patching::Patching, universe::Universe
     };
 
     use super::*;
@@ -60,5 +60,13 @@ mod tests {
         fixture.add_component(FixtureComponent::Placeholder);
 
         println!("{}",serde_json::to_string(&fixture).unwrap());
+    }
+
+    #[test]
+    fn req_full_uni_test(){
+        let p = Packet{
+            packet_type: networking::PacketType::RequestFullUniverse
+        };
+        println!("{}",String::from_utf8(p.serialize()).unwrap());
     }
 }

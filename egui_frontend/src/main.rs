@@ -1,23 +1,12 @@
-
-use std::fmt::format;
-use std::path::Component;
 use std::sync::Arc;
 
 use eframe::App;
 use eframe::WebRunner;
-use eframe::egui::Button;
-use eframe::egui::Color32;
 use eframe::egui::mutex::Mutex;
-use eframe::egui::scroll_area::State;
-use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window};
+use eframe::egui::{self, Context, Window};
 use fixture_lib::fixture::FixtureComponent;
-use fixture_lib::universe;
-use futures_util::StreamExt;
 
-use wasm_bindgen::convert::IntoWasmAbi;
 use wasm_bindgen::JsCast;
-use wasm_bindgen::prelude::Closure;
-use web_sys::js_sys;
 use web_sys::window;
 #[path = "ui_elements/color_picker.rs"]
 mod color_picker;
@@ -31,20 +20,16 @@ mod websocket;
 #[path = "ui_elements/universe_window.rs"]
 mod universe_window;
 
-#[path = "ui_elements/fixture_component_ui.rs"]
-mod fixture_component_ui;
 #[path = "ui_elements/fader_page.rs"]
 mod fader_page;
+#[path = "ui_elements/fixture_component_ui.rs"]
+mod fixture_component_ui;
 use fader_page::FaderPage;
 
 use fixture_lib::universe::Universe;
-use web_sys::ErrorEvent;
-use web_sys::Event;
-use web_sys::MessageEvent;
 use web_sys::WebSocket;
 
 use crate::universe_window::UniverseWindow;
-use crate::fader_page::Fader;
 use crate::websocket::open_websocket;
 
 struct UniverseState {
@@ -95,8 +80,6 @@ impl MyApp {
 
 impl App for MyApp {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
-        
-
         ctx.request_repaint();
 
         //self.color_picker.show(ctx);
@@ -109,38 +92,41 @@ impl App for MyApp {
         //self.fixture_manager.show(ctx);
         self.fader_page.show(ctx);
 
-        for i in 0..32{
-            if self.fader_page.fader[i].id != None{
+        for i in 0..32 {
+            if self.fader_page.fader[i].id != None {
                 //self.universe.lock().universe.get_fixture_by_id(self.fader_page.fader[i].id);
                 let mut uni = self.universe.lock();
-                
-                let mut fixture_test = match uni.universe.get_fixture_by_id_mut(self.fader_page.fader[i].id.unwrap()) {
-                    Some(test) => {test},
-                    None => {continue;},
+
+                let fixture_test = match uni
+                    .universe
+                    .get_fixture_by_id_mut(self.fader_page.fader[i].id.unwrap())
+                {
+                    Some(test) => test,
+                    None => {
+                        continue;
+                    }
                 };
-                
-                for c in &mut fixture_test.components.iter_mut(){
+
+                for c in &mut fixture_test.components.iter_mut() {
                     match c {
                         FixtureComponent::Dimmer(d) => {
                             self.universe_modified = true; // Wichtig: Steht hier weil ein Error gesagt hat uni kann nicht zwei mal geborrowed werden.KP
                             d.intensity = self.fader_page.fader[i].fader_value;
-                            
                         }
                         _ => {}
                     }
                 }
                 uni.modified = self.universe_modified;
-                
             }
         }
 
-        let color = self.color_picker.selected_color;   
-        Window::new("Test").show(ctx, |ui|{
-            for i in 0..32{
+        let color = self.color_picker.selected_color;
+        Window::new("Test").show(ctx, |ui| {
+            for i in 0..32 {
                 ui.label(format!("{}", self.fader_page.fader[i].id.unwrap()));
             }
             /* let mut uni = self.universe.lock();
-            
+
             let mut fixture_test = match uni.universe.get_fixture_by_id_mut(self.fader_page.fader[0].id.unwrap()) {
                 Some(test) => {test},
                 None => {return},
@@ -157,8 +143,6 @@ impl App for MyApp {
                 }
             } */
         });
-
-        
 
         if self.universe.lock().modified {
             let uni = self.universe.lock().universe.export_to_json();

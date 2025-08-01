@@ -11,7 +11,8 @@ use fixture_lib::{
     fixture::{Color, Dimmer, Fixture}, patching::Patching, universe::Universe
 };
 
-fn main() {
+#[tokio::main]
+async fn main() {
     tracing_subscriber::fmt()
         .compact() // Pretty, human-readable output
         .with_ansi(true)
@@ -54,5 +55,5 @@ fn main() {
         info!("set color to: {:?}", color)
     } */
 
-    server::start_ws_server(uni);
+    server::start_ws_server(uni).await;
 }
