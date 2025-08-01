@@ -28,7 +28,6 @@ impl ColorPickerWindow {
 
     pub fn show(&mut self, ctx: &egui::Context) {
         egui::Window::new("Color Picker").movable(self.anchored).show(ctx, |ui| {
-            
             ui.heading("Color Picker");
 
             let image_size = self.texture.size_vec2();
@@ -44,9 +43,8 @@ impl ColorPickerWindow {
                 ),
                 egui::Color32::WHITE,
             );
-            
             if (ui.input(|i| i.pointer.primary_down())) {
-                
+
                 if let Some(click_pos) = ui.input(|i| i.pointer.latest_pos()) {
                     let relative_x = (click_pos.x - rect.min.x) / rect.width();
                     let relative_y = (click_pos.y - rect.min.y) / rect.height();
@@ -57,15 +55,12 @@ impl ColorPickerWindow {
                         self.anchored = false;
                         self.selected_color = hue_at_pixel(pixel_x, self.width, 255, pixel_y as u8);
                     }
-                    
-                    
+
+
                 }
             }else {
                 self.anchored = true;
             }
-            
-
-            
 
             ui.separator();
             ui.colored_label(self.selected_color, "Selected Color");
@@ -75,9 +70,7 @@ impl ColorPickerWindow {
                 self.selected_color.g(),
                 self.selected_color.b()
             ));
-
-
-            ui.checkbox(&mut self.anchored, "Window Movable")
+      ui.checkbox(&mut self.anchored, "Window Movable")
         });
     }
 }
