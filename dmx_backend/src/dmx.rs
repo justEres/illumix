@@ -6,7 +6,7 @@ use std::{
 };
 
 use artnet_protocol::{ArtCommand, Output};
-use fixture_lib::universe::{self, Universe};
+use fixture_lib::universe::Universe;
 use serialport::SerialPort;
 use tracing::info;
 
