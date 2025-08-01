@@ -1,19 +1,18 @@
-use eframe::egui::{Color32, Pos2, Rect};
-use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window,Ui, Button};
-use egui::{ Frame, Margin};
-use wasm_bindgen::convert::IntoWasmAbi;
+use eframe::egui::{
+    self, Button, Ui, Vec2,
+};
+use eframe::egui::{Color32, Rect};
 
 mod fader_page_setup_window;
 use fader_page_setup_window::FaderPageSetupWindow;
 
-
-pub struct FaderPage{
+pub struct FaderPage {
     group_value: u8,
     y_offset: f32,
-    
+
     button_pressed: [bool; 32],
     fader_manual_override: [bool; 32],
-    
+
     group_select: bool,
     counter: u8,
     setup_toggle: bool,
@@ -21,33 +20,32 @@ pub struct FaderPage{
     pub fader: Vec<Fader>,
 
     setup_window: FaderPageSetupWindow,
-
 }
 #[derive(Clone)]
-pub struct Fader{
+pub struct Fader {
     pub id: Option<u8>,
     pub fader_value: u8,
     pub fader_selected: bool,
 }
 
-impl FaderPage{
+impl FaderPage {
     pub fn new(ctx: &egui::Context) -> Self {
         let mut fader = Vec::new();
 
-        
-        
-
-        for i in 0..=31{
-            fader.push(Fader{id: Some(0), fader_value: 0, fader_selected: false});
-            
+        for i in 0..=31 {
+            fader.push(Fader {
+                id: Some(0),
+                fader_value: 0,
+                fader_selected: false,
+            });
         }
-        Self{
+        Self {
             group_value: 0,
             y_offset: 0.,
-            
+
             button_pressed: [false; 32],
             fader_manual_override: [false; 32],
-            
+
             setup_toggle: true,
 
             group_select: false,
@@ -59,123 +57,171 @@ impl FaderPage{
 
     pub fn show(&mut self, ctx: &egui::Context) {
         //ctx.set_pixels_per_point(2.);
-        
-        egui::CentralPanel::default().show(ctx, |ui|{
 
-
+        egui::CentralPanel::default().show(ctx, |ui| {
             /// Styling
             let mut style = (*ctx.style()).clone();
             style.spacing.slider_width = 275.0; // Wider slider
             style.spacing.interact_size.y = 40.0; // Taller handle
             style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
-            
+
             ctx.set_style(style);
 
             self.counter = 0;
 
             self.y_offset = 0.;
-            for y in 0..4{
-                if y > 1{
+            for y in 0..4 {
+                if y > 1 {
                     self.y_offset = 370.;
                 }
-                for x in 0..8{
-                    if y == 3 || y == 1{
-                        self.draw_slider_bank(ui, Vec2 { x: (60. * x as f32) + 560., y: self.y_offset});
-                    }else{
-                        self.draw_slider_bank(ui, Vec2 { x: 60. * x as f32, y: self.y_offset});
+                for x in 0..8 {
+                    if y == 3 || y == 1 {
+                        self.draw_slider_bank(
+                            ui,
+                            Vec2 {
+                                x: (60. * x as f32) + 560.,
+                                y: self.y_offset,
+                            },
+                        );
+                    } else {
+                        self.draw_slider_bank(
+                            ui,
+                            Vec2 {
+                                x: 60. * x as f32,
+                                y: self.y_offset,
+                            },
+                        );
                     }
-                    self.counter +=1
+                    self.counter += 1
                 }
-            } 
+            }
 
-               
-
-            self.draw_slider_group(ui, Vec2 { x: (60. * 9.) + 560., y: 200.});
-            if self.draw_button(ui, Vec2 { x: (60. * 9.) + 560., y: 500.}, "Reset   Sel".into(), None){
-                for i in 0..32{
+            self.draw_slider_group(
+                ui,
+                Vec2 {
+                    x: (60. * 9.) + 560.,
+                    y: 200.,
+                },
+            );
+            if self.draw_button(
+                ui,
+                Vec2 {
+                    x: (60. * 9.) + 560.,
+                    y: 500.,
+                },
+                "Reset   Sel".into(),
+                None,
+            ) {
+                for i in 0..32 {
                     self.fader[i].fader_selected = false;
                 }
             }
-            if self.draw_button(ui, Vec2 { x: (60. * 9.) + 560., y: 550.}, "GR Sel".into(), Some(self.group_select)){
+            if self.draw_button(
+                ui,
+                Vec2 {
+                    x: (60. * 9.) + 560.,
+                    y: 550.,
+                },
+                "GR Sel".into(),
+                Some(self.group_select),
+            ) {
                 self.group_select = !self.group_select;
             }
-            if self.draw_button(ui, Vec2 { x: (60. * 9.) + 560., y: 150.}, "Clear".into(), None){
-                for i in 0..32{
+            if self.draw_button(
+                ui,
+                Vec2 {
+                    x: (60. * 9.) + 560.,
+                    y: 150.,
+                },
+                "Clear".into(),
+                None,
+            ) {
+                for i in 0..32 {
                     self.fader[i].fader_selected = false;
                 }
-                self.button_pressed= [false; 32];
-                self.fader_manual_override= [false; 32];
-                for i in 0..32{
+                self.button_pressed = [false; 32];
+                self.fader_manual_override = [false; 32];
+                for i in 0..32 {
                     self.fader[i].fader_value = 0;
                 }
-                self.group_select= false;
+                self.group_select = false;
                 self.group_value = 0;
             }
-            if self.draw_button(ui, Vec2 { x: (60. * 9.) + 560., y: 600.}, "Setup".into(), Some(self.setup_toggle)){
+            if self.draw_button(
+                ui,
+                Vec2 {
+                    x: (60. * 9.) + 560.,
+                    y: 600.,
+                },
+                "Setup".into(),
+                Some(self.setup_toggle),
+            ) {
                 self.setup_toggle = !self.setup_toggle;
             }
 
-            if self.setup_toggle{
-                self.setup_window.show(ctx,&mut self.fader);
+            if self.setup_toggle {
+                self.setup_window.show(ctx, &mut self.fader);
             }
-            
         });
     }
 
-    fn draw_slider_group(&mut self, ui: &mut Ui, offset: Vec2){
-        let widget_rect = 
-            Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 20., y: 20.});
-        ui.put(widget_rect,
-        egui::Slider::new(&mut self.group_value, 0..=255).show_value(false)
-            .orientation(egui::SliderOrientation::Vertical)
-            //.handle_shape(egui::style::HandleShape::Rect { aspect_ratio: 1.5 })
+    fn draw_slider_group(&mut self, ui: &mut Ui, offset: Vec2) {
+        let widget_rect = Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 20., y: 20. });
+        ui.put(
+            widget_rect,
+            egui::Slider::new(&mut self.group_value, 0..=255)
+                .show_value(false)
+                .orientation(egui::SliderOrientation::Vertical), //.handle_shape(egui::style::HandleShape::Rect { aspect_ratio: 1.5 })
         );
-        //let button_rect = 
+        //let button_rect =
         //Rect::from_min_size(ui.min_rect().min + offset + Vec2 { x: 0., y: 290.}, Vec2 { x: 40., y: 20.});
     }
 
-    fn draw_button(&mut self, ui: &mut Ui, offset: Vec2,name : String,  mut pressed: Option<bool>) -> bool {
-        let widget_rect = 
-            Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 40., y: 40.});
-        let button =ui.put(widget_rect, Button::new(name));
-        if pressed != None{
-            if button.clicked(){
+    fn draw_button(
+        &mut self,
+        ui: &mut Ui,
+        offset: Vec2,
+        name: String,
+        mut pressed: Option<bool>,
+    ) -> bool {
+        let widget_rect = Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 40., y: 40. });
+        let button = ui.put(widget_rect, Button::new(name));
+        if pressed != None {
+            if button.clicked() {
                 pressed = Some(!pressed.unwrap());
-                
             }
-            if pressed.unwrap(){
-                self.draw_frame("".into(), ui, Vec2 { x: 10., y: 10. }, offset + Vec2 { x: 15., y: 0.});
+            if pressed.unwrap() {
+                self.draw_frame(
+                    "".into(),
+                    ui,
+                    Vec2 { x: 10., y: 10. },
+                    offset + Vec2 { x: 15., y: 0. },
+                );
             }
         }
-        
 
         return button.clicked();
     }
 
-
-    fn draw_slider_bank(&mut self, ui: &mut Ui, offset: Vec2){
-        let widget_rect = 
-            Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 20., y: 20.});
-            ui.put(widget_rect,
-                egui::Slider::new(&mut self.fader[self.counter as usize].fader_value, 0..=255).show_value(false)
-                    .orientation(egui::SliderOrientation::Vertical)
-                    //.handle_shape(egui::style::HandleShape::Rect { aspect_ratio: 1.5 })
-            );
-        let button_rect = 
-        Rect::from_min_size(ui.min_rect().min + offset + Vec2 { x: 0., y: 290.}, Vec2 { x: 40., y: 20.});
+    fn draw_slider_bank(&mut self, ui: &mut Ui, offset: Vec2) {
+        let widget_rect = Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 20., y: 20. });
+        ui.put(
+            widget_rect,
+            egui::Slider::new(&mut self.fader[self.counter as usize].fader_value, 0..=255)
+                .show_value(false)
+                .orientation(egui::SliderOrientation::Vertical), //.handle_shape(egui::style::HandleShape::Rect { aspect_ratio: 1.5 })
+        );
+        let button_rect = Rect::from_min_size(
+            ui.min_rect().min + offset + Vec2 { x: 0., y: 290. },
+            Vec2 { x: 40., y: 20. },
+        );
         /* if ui.put(button_rect, Button::new("name")).t{
             ui.put(button_rect, Button::new("test"));
         } */
 
-
         // Style the button based on state
-        
-        let mut button = Button::new(format!("{}", self.counter + 1));
-        
 
-
-
-        
+        let button = Button::new(format!("{}", self.counter + 1));
 
         let index = self.counter as usize;
 
@@ -183,22 +229,26 @@ impl FaderPage{
         if ui.put(button_rect, button).clicked() {
             // Flip the current selection state
             self.fader[index].fader_selected = !self.fader[index].fader_selected;
-        
+
             // Manually control it now
             self.fader_manual_override[index] = true;
-        
+
             // Update button to match the selection
             self.button_pressed[index] = self.fader[index].fader_selected;
         }
-        
+
         if self.fader[self.counter as usize].fader_selected {
             // Apply red fill when clicked
             /* button = button.fill(Color32::DARK_RED); */
-            self.draw_frame("".into(), ui, Vec2 { x: 10., y: 10. }, offset + Vec2 { x: 15., y: 292.5});
-            if self.group_select{
+            self.draw_frame(
+                "".into(),
+                ui,
+                Vec2 { x: 10., y: 10. },
+                offset + Vec2 { x: 15., y: 292.5 },
+            );
+            if self.group_select {
                 self.fader[self.counter as usize].fader_value = self.group_value as u8;
             }
-            
         }
 
         // === Auto-selection fallback ===
@@ -220,9 +270,6 @@ impl FaderPage{
         {
             self.fader_manual_override[index] = false;
         }
-
-        
-        
     }
 
     fn draw_frame(&self, name: String, ui: &mut Ui, size: Vec2, offset: Vec2) {
@@ -233,7 +280,7 @@ impl FaderPage{
         // Paint background manually
         ui.painter().rect_filled(
             rect,
-            5.0,                          // corner radius
+            5.0,                              // corner radius
             Color32::from_rgb(255, 200, 120), // background color
         );
 
@@ -246,6 +293,4 @@ impl FaderPage{
             Color32::WHITE,
         );
     }
-
-
 }

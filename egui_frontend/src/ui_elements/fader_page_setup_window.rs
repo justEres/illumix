@@ -1,85 +1,93 @@
-use eframe::egui::{pos2, Color32, Label, Pos2, Rect};
-use eframe::egui::{vec2,self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window,Ui, Button, DragValue};
-use egui::{ Frame, Margin};
-use wasm_bindgen::convert::IntoWasmAbi;
-
+use eframe::egui::{
+    self, Button, DragValue, Ui, Vec2,
+    Window, vec2,
+};
+use eframe::egui::{Color32, Label, Rect};
 
 use crate::fader_page::Fader;
 
-
-pub struct FaderPageSetupWindow{
+pub struct FaderPageSetupWindow {
     selected_fader: u8,
     fader_patch: u8,
     test: i32,
 }
 
-
-impl FaderPageSetupWindow{
-    pub fn new(ctx: &egui::Context) -> Self{
-        Self{
+impl FaderPageSetupWindow {
+    pub fn new(ctx: &egui::Context) -> Self {
+        Self {
             selected_fader: 1,
             fader_patch: 0,
-            test: 1
+            test: 1,
         }
     }
 
-    pub fn show(&mut self, ctx: &egui::Context, fader: &mut Vec<Fader>){
-        Window::new("Setup Fader Page").show(ctx, |ui|{
-            
-            if self.selected_fader < 32{
-                if self.draw_button(ui, Vec2 { x: 0., y: 0.}, "⬆".into(), None){
+    pub fn show(&mut self, ctx: &egui::Context, fader: &mut Vec<Fader>) {
+        Window::new("Setup Fader Page").show(ctx, |ui| {
+            if self.selected_fader < 32 {
+                if self.draw_button(ui, Vec2 { x: 0., y: 0. }, "⬆".into(), None) {
                     self.selected_fader += 1;
                 }
             }
-            
 
-            self.draw_frame(format!("{}",self.selected_fader), ui, Vec2 { x: 40., y: 40. }, Vec2 { x: 0., y: 60. }, Color32::DARK_GRAY);
-            
-            if self.selected_fader > 1{
-                if self.draw_button(ui, Vec2 { x: 0., y: 120.}, "⬇".into(), None){
+            self.draw_frame(
+                format!("{}", self.selected_fader),
+                ui,
+                Vec2 { x: 40., y: 40. },
+                Vec2 { x: 0., y: 60. },
+                Color32::DARK_GRAY,
+            );
+
+            if self.selected_fader > 1 {
+                if self.draw_button(ui, Vec2 { x: 0., y: 120. }, "⬇".into(), None) {
                     self.selected_fader -= 1;
                 }
-    
             }
 
-            
-            
             self.fader_patch = fader[self.selected_fader as usize - 1].id.unwrap();
             self.draw_drag_value(ui, Vec2 { x: 60., y: 60. }, "Fixture ID: ".into());
             fader[self.selected_fader as usize - 1].id = Some(self.fader_patch);
-            
         });
     }
 
-    fn draw_drag_value(&mut self, ui: &mut Ui, offset: Vec2, name: String){
-        
+    fn draw_drag_value(&mut self, ui: &mut Ui, offset: Vec2, name: String) {
         let rect = Rect::from_min_size(ui.min_rect().min + offset, vec2(20.0, 10.0));
-        let label_rect = Rect::from_min_size(ui.min_rect().min + (offset - vec2(10., 30.)), vec2(40.0, 10.0));
+        let label_rect = Rect::from_min_size(
+            ui.min_rect().min + (offset - vec2(10., 30.)),
+            vec2(40.0, 10.0),
+        );
         ui.put(label_rect, Label::new(name));
-        ui.put(rect, DragValue::new(&mut self.fader_patch).clamp_range(0..=32));
+        ui.put(
+            rect,
+            DragValue::new(&mut self.fader_patch).clamp_range(0..=32),
+        );
     }
 
-
-
-
-    fn draw_button(&mut self, ui: &mut Ui, offset: Vec2,name : String,  mut pressed: Option<bool>) -> bool {
-        let widget_rect = 
-            Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 40., y: 40.});
-        let button =ui.put(widget_rect, Button::new(name));
-        if pressed != None{
-            if button.clicked(){
+    fn draw_button(
+        &mut self,
+        ui: &mut Ui,
+        offset: Vec2,
+        name: String,
+        mut pressed: Option<bool>,
+    ) -> bool {
+        let widget_rect = Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 40., y: 40. });
+        let button = ui.put(widget_rect, Button::new(name));
+        if pressed != None {
+            if button.clicked() {
                 pressed = Some(!pressed.unwrap());
-                
             }
-            if pressed.unwrap(){
-                self.draw_frame("".into(), ui, Vec2 { x: 10., y: 10. }, offset + Vec2 { x: 15., y: 0.}, Color32::from_rgb(255, 200, 120));
+            if pressed.unwrap() {
+                self.draw_frame(
+                    "".into(),
+                    ui,
+                    Vec2 { x: 10., y: 10. },
+                    offset + Vec2 { x: 15., y: 0. },
+                    Color32::from_rgb(255, 200, 120),
+                );
             }
         }
-        
 
         return button.clicked();
     }
-
 
     fn draw_frame(&self, name: String, ui: &mut Ui, size: Vec2, offset: Vec2, color: Color32) {
         let pos = ui.min_rect().min + offset;
@@ -88,8 +96,7 @@ impl FaderPageSetupWindow{
 
         // Paint background manually
         ui.painter().rect_filled(
-            rect,
-            5.0,                          // corner radius
+            rect, 5.0,   // corner radius
             color, // background color
         );
 
