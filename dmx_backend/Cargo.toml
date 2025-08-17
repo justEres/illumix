@@ -6,7 +6,11 @@ edition = "2024"
 [dependencies]
 artnet_protocol = "0.4.3"
 fixture_lib = { version = "0.1.0", path = "../fixture_lib" }
+futures = "0.3.31"
 serialport = "4.7.2"
+tokio = { version = "1.47.0", features = ["full", "net"] }
+tokio-tungstenite = "0.27.0"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["fmt","std"]}
 tungstenite = "0.27.0"
+uuid = { version = "1.17.0", features = ["v4"] }

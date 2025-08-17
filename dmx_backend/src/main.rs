@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read, sync::{Arc, Mutex}};
+use std::sync::{Arc, Mutex};
 
 use crate::dmx::DmxPort;
 use tracing::info;
@@ -7,11 +7,10 @@ mod dmx;
 mod rgb_hex;
 mod server;
 
-use fixture_lib::{
-    fixture::{Color, Dimmer, Fixture}, patching::Patching, universe::Universe
-};
+use fixture_lib::patching::Patching;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     tracing_subscriber::fmt()
         .compact() // Pretty, human-readable output
         .with_ansi(true)
@@ -19,18 +18,12 @@ fn main() {
         .with_target(false) // Enable ANSI colors
         .init();
 
+    let patching = Patching::load_from_file("patching/patching.json".into());
 
-
-    let mut patching = Patching::load_from_file("patching/patching.json".into());
-    
-    let mut uni = patching.to_universe();
-
-    
+    let uni = patching.to_universe();
 
     let uni = Arc::new(Mutex::new(uni));
     info!("Created Dmx Universe.");
-
-    
 
     //For normal dmx Backend
     //let port = DmxPort::open();
@@ -54,5 +47,5 @@ fn main() {
         info!("set color to: {:?}", color)
     } */
 
-    server::start_ws_server(uni);
+    server::start_ws_server(uni).await;
 }
