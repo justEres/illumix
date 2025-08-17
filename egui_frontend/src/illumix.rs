@@ -1,8 +1,9 @@
-use eframe::{App, egui};
+use eframe::{App, CreationContext, egui};
 use fixture_lib::universe::Universe;
 use web_sys::WebSocket;
 
 use crate::{
+    fader_page::{self, FaderPage},
     fixture_component_listener::{ListenerDatabase, SharedState},
     websocket::open_websocket,
 };
@@ -14,11 +15,24 @@ enum Tab {
     MovingHeads,
 }
 
+pub struct PageInstances {
+    fader_page: FaderPage,
+}
+
+impl PageInstances {
+    fn new(ctx: &CreationContext) -> Self {
+        Self {
+            fader_page: FaderPage::new(ctx),
+        }
+    }
+}
+
 pub struct Illumix {
     active_tab: Tab,
     universe: SharedState<Universe>,
     listener_database: SharedState<ListenerDatabase>,
     web_socket: WebSocket,
+    page_instances: PageInstances,
 }
 
 impl Illumix {
@@ -27,11 +41,16 @@ impl Illumix {
         let listener_database = SharedState::new(ListenerDatabase::new());
         let web_socket = open_websocket(universe.clone(), listener_database.clone());
 
+        let page_instances = PageInstances {
+            fader_page: FaderPage::new(&cc),
+        };
+
         Illumix {
             active_tab: Tab::FaderPage,
             universe,
             listener_database,
             web_socket,
+            page_instances,
         }
     }
 }
@@ -72,7 +91,7 @@ impl App for Illumix {
 
         egui::CentralPanel::default().show(ctx, |ui| match self.active_tab {
             Tab::FaderPage => {
-                ui.label("fader Page");
+                self.page_instances.fader_page.show(ctx);
             }
             Tab::ColorPicker => {
                 ui.label("Here you can pick colors");

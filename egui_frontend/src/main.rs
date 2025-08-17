@@ -6,20 +6,16 @@ use web_sys::window;
 
 #[path = "ui_elements/color_picker.rs"]
 mod color_picker;
-#[path = "ui_elements/fixture_manager.rs"]
-mod fixture_manager;
 #[path = "ui_elements/fader_page.rs"]
 mod fader_page;
 #[path = "ui_elements/fixture_component_ui.rs"]
 mod fixture_component_ui;
+#[path = "ui_elements/fixture_manager.rs"]
+mod fixture_manager;
 
-
-mod websocket;
-mod illumix;
 mod fixture_component_listener;
-
-
-
+mod illumix;
+mod websocket;
 
 #[cfg(target_arch = "wasm32")]
 fn main() {
