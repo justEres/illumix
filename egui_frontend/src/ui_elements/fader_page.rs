@@ -10,8 +10,7 @@ use crate::fader_page::fader::Fader;
 mod fader;
 
 pub struct FaderPage {
-    //fader_list: [fader::Fader; 24]
-    test_fader: fader::Fader,
+    fader_list: [fader::Fader; 24],
 
     //Styling
     panel_resolution: Vec2,
@@ -21,69 +20,91 @@ impl FaderPage {
     pub fn new(ctx: &CreationContext) -> Self {
         let panel_resolution = Vec2 { x: 1000., y: 800. };
 
+        let fader_list: [fader::Fader; 24] = std::array::from_fn(|_| fader::Fader::new(None, None));
+
         Self {
-            test_fader: Fader::new(0., 0., None, None),
+            fader_list,
             panel_resolution,
         }
     }
 
     pub fn show(&mut self, ctx: &egui::Context) {
         CentralPanel::default().show(ctx, |ui| {
-            ui.label("test");
-            //self.panel_resolution = Vec2 { x: ui.min_size().x, y: ui.min_size().y };
-
-            /// Styling
+            self.panel_resolution = Vec2 { x: ui.min_size().x, y: ui.min_size().y };
+    
+            // Styling (unchanged except your values)
             let mut style = (*ctx.style()).clone();
-            style.spacing.slider_width = ((self.panel_resolution.y / 100.) * 37.5); // Wider slider
-            style.spacing.interact_size.y = ((self.panel_resolution.y / 100.) * 6.); // Taller handle
+            style.spacing.slider_width = ((self.panel_resolution.y / 100.) * 37.5);
+            style.spacing.interact_size.y = ((self.panel_resolution.y / 100.) * 6.);
             style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
-
             ui.set_style(style.clone());
-
-            let widget_rect = Rect::from_min_size(
-                Pos2 {
-                    x: self.test_fader.pos_x,
-                    y: self.test_fader.pos_y,
-                },
-                Vec2 { x: 100., y: 100. },
-            );
-
-
-            let mut values = vec![0, 0, 0, 0, 0];
-            ui.horizontal(|ui| {
-        for i in 0..5 {
-            ui.vertical(|ui| {
-                // Vertical slider
-                let slider = Slider::new(&mut values[i], 0..=100)
-                    .vertical()
-                    .show_value(false);
-                let slider_response = ui.add(slider);
-
-                // Space between slider and button
-                ui.add_space(5.0);
-
-                // Center the button under the slider
-                let button_width = 30.0; // approximate width of your button
-                let slider_width = slider_response.rect.width();
-                let offset = (slider_width - button_width) / 2.0;
-
-                ui.allocate_new_ui(
-                    UiBuilder::new().max_rect(slider_response.rect.translate(egui::vec2(offset, slider_response.rect.height() + 5.0))),
-                    
-                    |ui| {
-                        if ui.button(" Käse ").clicked() {
+    
+            let row_gap = 40.0;
+    
+            // helper to draw one fader column (unchanged)
+            let mut draw_fader = |ui: &mut egui::Ui, i: usize| {
+                ui.vertical(|ui| {
+                    let slider = Slider::new(&mut self.fader_list[i].fader_value, 0..=255)
+                        .vertical()
+                        .show_value(false);
+                    let slider_response = ui.add(slider);
+    
+                    ui.add_space(5.0);
+    
+                    let button_width  = ((self.panel_resolution.y / 100.) * 6.);
+                    let button_height = ui.spacing().interact_size.y;
+                    let slider_width  = slider_response.rect.width();
+                    let offset        = (slider_width - button_width) / 2.0;
+    
+                    let button_rect = Rect::from_min_size(
+                        Pos2 {
+                            x: slider_response.rect.left() + offset,
+                            y: slider_response.rect.bottom() + 5.0,
+                        },
+                        Vec2 { x: button_width, y: button_height },
+                    );
+    
+                    ui.allocate_new_ui(UiBuilder::new().max_rect(button_rect), |ui| {
+                        if ui.add_sized([button_width, button_height], Button::new(format!("{}", i + 1))).clicked() {
                             alert(&format!("Ayo from slider {i}"));
                         }
-                    },
-                );
-            });
-
-            // Space between channels
-            ui.add_space(10.0);
-        }
-    });
+                    });
+                });
+            };
+    
+            // --- function to draw a row that spreads columns evenly across available width
+            let mut draw_row_even = |ui: &mut egui::Ui, start: usize, end: usize| {
+                let n = end - start;
+                if n == 0 { return; }
+    
+                // Each column is at least as wide as the slider (or the button if wider)
+                let col_w = ui.style().spacing.slider_width
+                    .max((self.panel_resolution.y / 100.) * 6.0);
+    
+                // Compute gap so columns + gaps exactly fill the row width (space-between)
+                let avail = ui.available_width();
+                let total_cols = col_w * n as f32;
+                let gap = ((avail - total_cols) / (n as f32 - 1.0)).max(0.0);
+    
+                // Apply spacing only inside this scope
+                ui.scope(|ui| {
+                    // set spacing BEFORE adding the widgets in this row
+                    ui.spacing_mut().item_spacing.x = gap; // gap you computed
+                    ui.horizontal(|ui| {
+                        for i in 0..12 {
+                            draw_fader(ui, i);
+                        }
+                    });
+                });
+            };
+    
+            // Row 1: 0..12 and Row 2: 12..24, evenly spread
+            draw_row_even(ui, 0, 12);
+            ui.add_space(row_gap);
+            draw_row_even(ui, 12, 24);
         });
     }
+    
 }
 
 
