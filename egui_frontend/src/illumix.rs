@@ -1,9 +1,11 @@
-use eframe::{
-    App,
-    egui::{self, Label, Window},
-};
+use eframe::{App, egui};
+use fixture_lib::universe::Universe;
+use web_sys::WebSocket;
 
-use crate::fader_page::FaderPage;
+use crate::{
+    fixture_component_listener::{ListenerDatabase, SharedState},
+    websocket::open_websocket,
+};
 
 #[derive(PartialEq)]
 enum Tab {
@@ -14,12 +16,22 @@ enum Tab {
 
 pub struct Illumix {
     active_tab: Tab,
+    universe: SharedState<Universe>,
+    listener_database: SharedState<ListenerDatabase>,
+    web_socket: WebSocket,
 }
 
 impl Illumix {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        let universe = SharedState::new(Universe::new());
+        let listener_database = SharedState::new(ListenerDatabase::new());
+        let web_socket = open_websocket(universe.clone(), listener_database.clone());
+
         Illumix {
             active_tab: Tab::FaderPage,
+            universe,
+            listener_database,
+            web_socket,
         }
     }
 }
@@ -36,7 +48,7 @@ impl App for Illumix {
                     self.active_tab = Tab::FaderPage;
                 }
                 if ui
-                    .selectable_label(self.active_tab == Tab::ColorPicker, "Fader Page")
+                    .selectable_label(self.active_tab == Tab::ColorPicker, "Color Picker")
                     .clicked()
                 {
                     self.active_tab = Tab::ColorPicker;
@@ -59,9 +71,15 @@ impl App for Illumix {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| match self.active_tab {
-            Tab::FaderPage => ui.label("Welcome to the Fader Page"),
-            Tab::ColorPicker => ui.label("Here you can pick colors"),
-            Tab::MovingHeads => ui.label("Turn your head around"),
+            Tab::FaderPage => {
+                ui.label("fader Page");
+            }
+            Tab::ColorPicker => {
+                ui.label("Here you can pick colors");
+            }
+            Tab::MovingHeads => {
+                ui.label("Turn your head around");
+            }
         });
     }
 }
