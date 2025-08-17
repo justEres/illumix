@@ -1,13 +1,19 @@
-use std::sync::Arc;
-
-use eframe::egui::mutex::Mutex;
-use fixture_lib::{networking::Packet, universe::Universe};
+use fixture_lib::{
+    networking::{Packet, PacketType},
+    universe::Universe,
+};
 use wasm_bindgen::{JsCast, prelude::Closure};
-use web_sys::{js_sys::{self, ArrayBuffer, Uint8Array}, ErrorEvent, Event, MessageEvent};
+use web_sys::{
+    ErrorEvent, Event, MessageEvent,
+    js_sys::{ArrayBuffer, Uint8Array},
+};
 
-use crate::UniverseState;
+use crate::fixture_component_listener::{ListenerDatabase, SharedState};
 
-pub fn open_websocket(uni: Arc<Mutex<UniverseState>>) -> web_sys::WebSocket {
+pub fn open_websocket(
+    uni: SharedState<Universe>,
+    listener_database: SharedState<ListenerDatabase>,
+) -> web_sys::WebSocket {
     let ws = web_sys::WebSocket::new("ws://127.0.0.1:8000").unwrap();
 
     ws.set_binary_type(web_sys::BinaryType::Arraybuffer);
@@ -15,7 +21,7 @@ pub fn open_websocket(uni: Arc<Mutex<UniverseState>>) -> web_sys::WebSocket {
     let onmessage_callback = Closure::wrap(Box::new(move |e: MessageEvent| {
         if let Ok(data) = e.data().dyn_into::<ArrayBuffer>() {
             let packet = Packet::deserialize(Uint8Array::new(&data).to_vec());
-            handle_packet(packet, uni.clone());
+            handle_packet(packet, uni.clone(), listener_database.clone());
 
             //web_sys::console::log_1(&format!("Recieved: {}", txt).into());
         } else {
@@ -36,10 +42,9 @@ pub fn open_websocket(uni: Arc<Mutex<UniverseState>>) -> web_sys::WebSocket {
     let ws_clone = ws.clone();
     let onopen_callback = Closure::wrap(Box::new(move |_e: Event| {
         web_sys::console::log_1(&"WebSocket connection opened!".into());
-        let packet = Packet{
+        let packet = Packet {
             packet_type: fixture_lib::networking::PacketType::RequestFullUniverse,
         };
-        
 
         // Send a message once opened
         if let Err(err) = ws_clone.send_with_u8_array(&packet.serialize()) {
@@ -51,8 +56,31 @@ pub fn open_websocket(uni: Arc<Mutex<UniverseState>>) -> web_sys::WebSocket {
     ws
 }
 
+pub fn handle_packet(
+    packet: Packet,
+    uni: SharedState<Universe>,
+    listener_database: SharedState<ListenerDatabase>,
+) {
+    match packet.packet_type {
+        PacketType::RequestFullUniverse => {
+            web_sys::console::log_1(
+                &"got RequestFullUniverse Packet, which is only for the server"
+                    .to_string()
+                    .into(),
+            );
+        }
+        PacketType::FullUniverse(universe) => {
+            *uni.borrow_mut() = universe;
+        }
+        PacketType::FixtureComponentUpdated(fixture_component_updated) => {
+            listener_database.borrow().notify(
+                fixture_component_updated.fixture_id,
+                fixture_component_updated.component_index,
+                fixture_component_updated.component,
+            );
+        }
+    }
 
-pub fn handle_packet(packet: Packet, uni: Arc<Mutex<UniverseState>>){
-    let packet_text = format!("{:?}",packet);
-    web_sys::console::log_1(&packet_text.into());
+    //let packet_text = format!("{:?}",packet);
+    //web_sys::console::log_1(&packet_text.into());
 }

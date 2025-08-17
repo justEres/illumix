@@ -1,14 +1,17 @@
 pub mod fixture;
-pub mod universe;
-pub mod patching;
 pub mod networking;
+pub mod patching;
+pub mod universe;
 
 #[cfg(test)]
 mod tests {
     use std::{fs::File, io::Write};
 
     use crate::{
-        fixture::{Color, Dimmer, Fixture, FixtureComponent}, networking::Packet, patching::Patching, universe::Universe
+        fixture::{Color, Dimmer, Fixture, FixtureComponent},
+        networking::Packet,
+        patching::Patching,
+        universe::Universe,
     };
 
     use super::*;
@@ -36,37 +39,37 @@ mod tests {
 
     #[test]
     fn gen_patching() {
-        let fixture = patching::FixturePreset{ name: "1kw".into(), components: vec![FixtureComponent::Dimmer(Dimmer { intensity: 0 })]};
+        let fixture = patching::FixturePreset {
+            name: "1kw".into(),
+            components: vec![FixtureComponent::Dimmer(Dimmer { intensity: 0 })],
+        };
 
         fixture.store_to_file("1kw.json".into());
 
-
-
         let mut patching = Patching::new();
-        patching.fixtures.push(patching::Fixture{ id: 0, dmx_address: 12, fixture_preset: "1kw.json".into()});
+        patching.fixtures.push(patching::Fixture {
+            id: 0,
+            dmx_address: 12,
+            fixture_preset: "1kw.json".into(),
+        });
         patching.store_to_file("patching.json".into());
 
         dbg!(patching.to_universe());
-
-        
-
-
     }
 
-
     #[test]
-    fn temp(){
+    fn temp() {
         let mut fixture = Fixture::new(1, 12, "leck mich im arsch".into());
         fixture.add_component(FixtureComponent::Placeholder);
 
-        println!("{}",serde_json::to_string(&fixture).unwrap());
+        println!("{}", serde_json::to_string(&fixture).unwrap());
     }
 
     #[test]
-    fn req_full_uni_test(){
-        let p = Packet{
-            packet_type: networking::PacketType::RequestFullUniverse
+    fn req_full_uni_test() {
+        let p = Packet {
+            packet_type: networking::PacketType::RequestFullUniverse,
         };
-        println!("{}",String::from_utf8(p.serialize()).unwrap());
+        println!("{}", String::from_utf8(p.serialize()).unwrap());
     }
 }
