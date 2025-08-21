@@ -1,4 +1,6 @@
-use eframe::CreationContext;
+use std::fmt::format;
+
+use eframe::{CreationContext, Frame};
 use eframe::egui::{
     self, Button, CentralPanel, ColorImage, Context, Slider, TextureHandle, Ui, UiBuilder, Vec2, Window
 };
@@ -14,97 +16,119 @@ pub struct FaderPage {
 
     //Styling
     panel_resolution: Vec2,
+
+    rect: Rect,
 }
 
 impl FaderPage {
     pub fn new(ctx: &CreationContext) -> Self {
         let panel_resolution = Vec2 { x: 1000., y: 800. };
-
+        
         let fader_list: [fader::Fader; 24] = std::array::from_fn(|_| fader::Fader::new(None, None));
+
+        let rect = Rect::from_min_size(Pos2::ZERO, egui::vec2(0.0, 0.0));
 
         Self {
             fader_list,
             panel_resolution,
+            rect,
         }
     }
 
     pub fn show(&mut self, ctx: &egui::Context) {
         CentralPanel::default().show(ctx, |ui| {
-            self.panel_resolution = Vec2 { x: ui.min_size().x, y: ui.min_size().y };
+
+            egui::CentralPanel::default().show(ctx, |ui| {
+
+                self.rect = ui.max_rect();
+                self.panel_resolution = Vec2 { x: self.rect.max.x / 100., y: self.rect.max.y / 100.};
+
+                let mut style = (*ctx.style()).clone();
+                style.spacing.slider_width = ((self.panel_resolution.y) * 37.5); // Wider slider
+                style.spacing.interact_size.y = ((self.panel_resolution.y) * 6.); // Taller handle
+                style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
     
-            // Styling (unchanged except your values)
-            let mut style = (*ctx.style()).clone();
-            style.spacing.slider_width = ((self.panel_resolution.y / 100.) * 37.5);
-            style.spacing.interact_size.y = ((self.panel_resolution.y / 100.) * 6.);
-            style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
-            ui.set_style(style.clone());
-    
-            let row_gap = 40.0;
-    
-            // helper to draw one fader column (unchanged)
-            let mut draw_fader = |ui: &mut egui::Ui, i: usize| {
-                ui.vertical(|ui| {
-                    let slider = Slider::new(&mut self.fader_list[i].fader_value, 0..=255)
-                        .vertical()
-                        .show_value(false);
-                    let slider_response = ui.add(slider);
-    
-                    ui.add_space(5.0);
-    
-                    let button_width  = ((self.panel_resolution.y / 100.) * 6.);
-                    let button_height = ui.spacing().interact_size.y;
-                    let slider_width  = slider_response.rect.width();
-                    let offset        = (slider_width - button_width) / 2.0;
-    
-                    let button_rect = Rect::from_min_size(
-                        Pos2 {
-                            x: slider_response.rect.left() + offset,
-                            y: slider_response.rect.bottom() + 5.0,
-                        },
-                        Vec2 { x: button_width, y: button_height },
-                    );
-    
-                    ui.allocate_new_ui(UiBuilder::new().max_rect(button_rect), |ui| {
-                        if ui.add_sized([button_width, button_height], Button::new(format!("{}", i + 1))).clicked() {
-                            alert(&format!("Ayo from slider {i}"));
-                        }
-                    });
-                });
-            };
-    
-            // --- function to draw a row that spreads columns evenly across available width
-            let mut draw_row_even = |ui: &mut egui::Ui, start: usize, end: usize| {
-                let n = end - start;
-                if n == 0 { return; }
-    
-                // Each column is at least as wide as the slider (or the button if wider)
-                let col_w = ui.style().spacing.slider_width
-                    .max((self.panel_resolution.y / 100.) * 6.0);
-    
-                // Compute gap so columns + gaps exactly fill the row width (space-between)
-                let avail = ui.available_width();
-                let total_cols = col_w * n as f32;
-                let gap = ((avail - total_cols) / (n as f32 - 1.0)).max(0.0);
-    
-                // Apply spacing only inside this scope
-                ui.scope(|ui| {
-                    // set spacing BEFORE adding the widgets in this row
-                    ui.spacing_mut().item_spacing.x = gap; // gap you computed
-                    ui.horizontal(|ui| {
-                        for i in 0..12 {
-                            draw_fader(ui, i);
-                        }
-                    });
-                });
-            };
-    
-            // Row 1: 0..12 and Row 2: 12..24, evenly spread
-            draw_row_even(ui, 0, 12);
-            ui.add_space(row_gap);
-            draw_row_even(ui, 12, 24);
+                ui.set_style(style.clone());
+
+
+                self.draw_slider_bank(ui);
+
+            });
+
         });
     }
-    
+
+    fn draw_slider_bank(&mut self, ui: &mut Ui){
+
+        
+
+        for i in 0..24{
+
+            let mut offset = Vec2 { x: 0., y: 0. };
+            if (i > 5 && i < 12) || (i > 17){
+                offset = Vec2 { x: (self.panel_resolution.x * 6.), y: 0. };
+            }
+
+            if i < 12{
+                offset += Vec2{x: (self.panel_resolution.x * 6.) * i as f32, y:0.};
+            }else{
+                offset += Vec2{x: (self.panel_resolution.x * 6.) * (i as f32 - 12.), y: self.panel_resolution.y * 50.};
+            }
+            
+
+            let local = egui::Rect::from_min_size(self.rect.min + offset, egui::vec2(20.0, 20.0));
+
+            let response = ui.put(
+                local,
+                egui::Slider::new(&mut self.fader_list[i].fader_value, 0..=255)
+                    .show_value(false)
+                    .orientation(egui::SliderOrientation::Vertical),
+            );
+
+            if response.changed(){
+                self.fader_list[i].fader_value_changed();
+            }
+
+            let local = egui::Rect::from_min_size(self.rect.min + offset + Vec2{x:0.,y:self.panel_resolution.y * 40.}, egui::vec2(self.panel_resolution.y * 6., 20.0));
+
+            if self.fader_list[i].is_selected == false && ui.put(
+                local,
+                Button::new(format!("{}", i + 1))
+            ).clicked(){
+                self.fader_list[i].is_selected = true;
+            }else if self.fader_list[i].is_selected == true && ui.put(
+                local,
+                Button::new(format!("{}", i + 1))
+            ).clicked(){
+                self.fader_list[i].is_selected =false;
+            }            
+            
+
+            
+
+            let local = egui::Rect::from_min_size(self.rect.min + offset + Vec2{x:self.panel_resolution.y * 2.5,y:self.panel_resolution.y * 40.5}, egui::vec2(self.panel_resolution.y * 1., 9.));
+
+            ui.allocate_rect(local, egui::Sense::hover());
+
+
+            let mut color = Color32::from_rgb(0, 0, 0);
+
+            if self.fader_list[i].is_selected == true{
+                color = Color32::from_rgb(255, 200, 120);
+            }
+
+            ui.painter().rect_filled(
+                local,
+                5.0,                                                // corner radius
+                color, // background color
+            );
+            
+        }
+
+        
+            
+        
+    }
 }
 
 
