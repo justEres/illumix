@@ -69,3 +69,19 @@ impl<T> Clone for SharedState<T> {
         SharedState(self.0.clone())
     }
 }
+
+
+pub struct ChangeEventManager{
+    updates: HashMap<(u8,u8),FixtureComponent>
+}
+
+impl ChangeEventManager{
+    pub fn new() -> Self{
+        Self { updates: HashMap::new() }
+    }
+
+    pub fn create_event(&mut self, fixture_id: u8, component_index: u8, new_fixture_component: FixtureComponent) {
+        self.updates.insert((fixture_id,component_index), new_fixture_component);
+    }
+}
+

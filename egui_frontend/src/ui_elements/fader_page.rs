@@ -4,7 +4,7 @@ use eframe::{CreationContext, Frame};
 use eframe::egui::{
     self, Button, CentralPanel, ColorImage, Context, Slider, TextureHandle, Ui, UiBuilder, Vec2, Window
 };
-use eframe::egui::{Color32, Pos2, Rect, Style};
+use eframe::egui::{Pos2, Rect};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::fader_page::fader::Fader;
@@ -130,6 +130,7 @@ impl FaderPage {
         
     }
 }
+
 
 
 #[wasm_bindgen]

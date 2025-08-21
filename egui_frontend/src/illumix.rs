@@ -4,7 +4,7 @@ use web_sys::WebSocket;
 
 use crate::{
     fader_page::{self, FaderPage},
-    fixture_component_listener::{ListenerDatabase, SharedState},
+    fixture_component_listener::{ChangeEventManager, ListenerDatabase, SharedState},
     websocket::open_websocket,
 };
 
@@ -31,6 +31,7 @@ pub struct Illumix {
     active_tab: Tab,
     universe: SharedState<Universe>,
     listener_database: SharedState<ListenerDatabase>,
+    change_event_manager: SharedState<ChangeEventManager>,
     web_socket: WebSocket,
     page_instances: PageInstances,
 }
@@ -49,6 +50,7 @@ impl Illumix {
             active_tab: Tab::FaderPage,
             universe,
             listener_database,
+            change_event_manager: SharedState::new(ChangeEventManager::new()),
             web_socket,
             page_instances,
         }
