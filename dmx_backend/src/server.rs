@@ -119,7 +119,9 @@ async fn handle_message(msg: Message, peers: PeerMap, uuid: Uuid, universe: Arc<
                 let mut universe = universe.lock().unwrap();
                 universe_update_fixture_component(&mut universe, fcu.clone());
             }
+            //info!("broadcasting component: {:?}",fcu.component);
             broadcast(&uuid, peers.clone(), &packet.serialize().into()).await;
+            
         }
         _ => {
             warn!("Server got unimplemented Packet {:?}", packet);

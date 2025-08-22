@@ -6,8 +6,9 @@ use eframe::egui::{
 };
 use eframe::egui::{Pos2, Rect};
 use eframe::{CreationContext, Frame};
-use fixture_lib::fixture::Dimmer;
+use fixture_lib::fixture::{Dimmer, FixtureComponent};
 use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::console::info;
 
 use crate::fader_page::fader::Fader;
 use crate::fixture_component_listener::{ChangeEventManager, ListenerDatabase, SharedState};
@@ -15,7 +16,7 @@ use crate::fixture_component_listener::{ChangeEventManager, ListenerDatabase, Sh
 mod fader;
 
 pub struct FaderPage {
-    fader_list: [fader::Fader; 24],
+    fader_list: SharedState<[fader::Fader; 24]>,
 
     //Styling
     panel_resolution: Vec2,
@@ -32,17 +33,39 @@ impl FaderPage {
     ) -> Self {
         let panel_resolution = Vec2 { x: 1000., y: 800. };
 
-        let fader_list: [fader::Fader; 24] = std::array::from_fn(|_| fader::Fader::new(None, None));
+        let fader_list: SharedState<[fader::Fader; 24]> = SharedState::new(std::array::from_fn(|_| fader::Fader::new(None, None)));
 
         let rect = Rect::from_min_size(Pos2::ZERO, egui::vec2(0.0, 0.0));
+        
 
-        Self {
+
+        let mut fp = Self {
             fader_list,
             panel_resolution,
             rect,
             change_event_manager,
             listener_database,
+        };
+        fp.add_listeners();
+        fp
+    }
+
+    pub fn add_listeners(&mut self){
+        let mut listener_database = self.listener_database.borrow_mut();
+        for i in 0..self.fader_list.borrow().len(){
+            let fader_list = self.fader_list.clone();
+            listener_database.add_listener(i as u8, 0, Box::new(move |fc| {
+                match fc{
+                    FixtureComponent::Dimmer(d) => {
+                        fader_list.borrow_mut()[i].fader_value = d.intensity;
+                        web_sys::console::log_1(&"updated fader intensity".into());
+                    },
+                    _ => {}
+                }
+            }));
         }
+        web_sys::console::log_1(&"created listeners".into());
+
     }
 
     pub fn show(&mut self, ctx: &egui::Context) {
@@ -92,18 +115,18 @@ impl FaderPage {
 
             let response = ui.put(
                 local,
-                egui::Slider::new(&mut self.fader_list[i].fader_value, 0..=255)
+                egui::Slider::new(&mut self.fader_list.borrow_mut()[i].fader_value, 0..=255)
                     .show_value(false)
                     .orientation(egui::SliderOrientation::Vertical),
             );
 
             if response.changed() {
-                self.fader_list[i].fader_value_changed();
+                self.fader_list.borrow_mut()[i].fader_value_changed();
                 self.change_event_manager.borrow_mut().create_event(
                     i as u8,
                     0,
                     fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer {
-                        intensity: self.fader_list[i].fader_value,
+                        intensity: self.fader_list.borrow()[i].fader_value,
                     }),
                 );
             }
@@ -118,14 +141,14 @@ impl FaderPage {
                 egui::vec2(self.panel_resolution.y * 6., 20.0),
             );
 
-            if self.fader_list[i].is_selected == false
+            if self.fader_list.borrow()[i].is_selected == false
                 && ui.put(local, Button::new(format!("{}", i + 1))).clicked()
             {
-                self.fader_list[i].is_selected = true;
-            } else if self.fader_list[i].is_selected == true
+                self.fader_list.borrow_mut()[i].is_selected = true;
+            } else if self.fader_list.borrow()[i].is_selected == true
                 && ui.put(local, Button::new(format!("{}", i + 1))).clicked()
             {
-                self.fader_list[i].is_selected = false;
+                self.fader_list.borrow_mut()[i].is_selected = false;
             }
 
             let local = egui::Rect::from_min_size(
@@ -142,7 +165,7 @@ impl FaderPage {
 
             let mut color = Color32::from_rgb(0, 0, 0);
 
-            if self.fader_list[i].is_selected == true {
+            if self.fader_list.borrow()[i].is_selected == true {
                 color = Color32::from_rgb(255, 200, 120);
             }
 

@@ -73,6 +73,7 @@ pub fn handle_packet(
             *uni.borrow_mut() = universe;
         }
         PacketType::FixtureComponentUpdated(fixture_component_updated) => {
+            //web_sys::console::log_1(&"got fixture update packet".into());
             listener_database.borrow().notify(
                 fixture_component_updated.fixture_id,
                 fixture_component_updated.component_index,

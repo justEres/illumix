@@ -121,5 +121,6 @@ impl App for Illumix {
         });
 
         self.send_updates();
+        ctx.request_repaint();
     }
 }
