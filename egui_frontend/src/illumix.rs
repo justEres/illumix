@@ -1,5 +1,6 @@
 use eframe::{App, CreationContext, egui};
 use fixture_lib::universe::Universe;
+use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::WebSocket;
 
 use crate::{
@@ -20,9 +21,13 @@ pub struct PageInstances {
 }
 
 impl PageInstances {
-    fn new(ctx: &CreationContext) -> Self {
+    fn new(
+        ctx: &CreationContext,
+        change_event_manager: SharedState<ChangeEventManager>,
+        listener_database: SharedState<ListenerDatabase>,
+    ) -> Self {
         Self {
-            fader_page: FaderPage::new(ctx),
+            fader_page: FaderPage::new(ctx, change_event_manager, listener_database),
         }
     }
 }
@@ -40,22 +45,34 @@ impl Illumix {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         let universe = SharedState::new(Universe::new());
         let listener_database = SharedState::new(ListenerDatabase::new());
-        let web_socket = open_websocket(universe.clone(), listener_database.clone());
+        let change_event_manager = SharedState::new(ChangeEventManager::new());
+        let web_socket = open_websocket(universe.clone(), listener_database.clone()).unwrap();
 
         let page_instances = PageInstances {
-            fader_page: FaderPage::new(&cc),
+            fader_page: FaderPage::new(
+                &cc,
+                change_event_manager.clone(),
+                listener_database.clone(),
+            ),
         };
 
         Illumix {
             active_tab: Tab::FaderPage,
             universe,
             listener_database,
-            change_event_manager: SharedState::new(ChangeEventManager::new()),
+            change_event_manager,
             web_socket,
             page_instances,
         }
     }
+
+    pub fn send_updates(&mut self) {
+        self.change_event_manager
+            .borrow_mut()
+            .send_updates(self.web_socket.clone());
+    }
 }
+
 
 impl App for Illumix {
     fn update(&mut self, ctx: &eframe::egui::Context, frame: &mut eframe::Frame) {
@@ -102,5 +119,7 @@ impl App for Illumix {
                 ui.label("Turn your head around");
             }
         });
+
+        self.send_updates();
     }
 }

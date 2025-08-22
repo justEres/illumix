@@ -5,7 +5,15 @@ use std::{
     rc::Rc,
 };
 
-use fixture_lib::{fixture::FixtureComponent, universe::Universe};
+use fixture_lib::{
+    fixture::FixtureComponent,
+    networking::{FixtureComponentUpdated, Packet, PacketType},
+    universe::Universe,
+};
+use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::WebSocket;
+
+use crate::websocket::send_packet;
 
 type Callback = Box<dyn Fn(&FixtureComponent) -> ()>;
 
@@ -70,18 +78,46 @@ impl<T> Clone for SharedState<T> {
     }
 }
 
-
-pub struct ChangeEventManager{
-    updates: HashMap<(u8,u8),FixtureComponent>
+pub struct ChangeEventManager {
+    updates: HashMap<(u8, u8), FixtureComponent>,
 }
 
-impl ChangeEventManager{
-    pub fn new() -> Self{
-        Self { updates: HashMap::new() }
+impl ChangeEventManager {
+    pub fn new() -> Self {
+        Self {
+            updates: HashMap::new(),
+        }
     }
 
-    pub fn create_event(&mut self, fixture_id: u8, component_index: u8, new_fixture_component: FixtureComponent) {
-        self.updates.insert((fixture_id,component_index), new_fixture_component);
+    pub fn create_event(
+        &mut self,
+        fixture_id: u8,
+        component_index: u8,
+        new_fixture_component: FixtureComponent,
+    ) {
+        self.updates
+            .insert((fixture_id, component_index), new_fixture_component);
     }
+
+    pub fn send_updates(&mut self, ws: WebSocket) {
+        for ((fixture_id, component_index), component) in self.updates.drain() {
+            //alert(&format!("fixture: {} component_index: {}, component: {:?}",fixture_id,component_index,component));
+            let packet = Packet {
+                packet_type: PacketType::FixtureComponentUpdated(FixtureComponentUpdated {
+                    component,
+                    fixture_id,
+                    component_index,
+                }),
+            };
+            send_packet(ws.clone(), packet);
+            web_sys::console::log_1(&"sent update".to_string().into());
+        }
+
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    fn alert(s: &str);
 }
 
