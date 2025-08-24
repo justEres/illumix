@@ -6,6 +6,7 @@ use web_sys::WebSocket;
 use crate::{
     fader_page::{self, FaderPage},
     fixture_component_listener::{ChangeEventManager, ListenerDatabase, SharedState},
+    visual_page::VisualPage,
     websocket::open_websocket,
 };
 
@@ -18,6 +19,7 @@ enum Tab {
 
 pub struct PageInstances {
     fader_page: FaderPage,
+    visual_page: VisualPage,
 }
 
 impl PageInstances {
@@ -25,9 +27,11 @@ impl PageInstances {
         ctx: &CreationContext,
         change_event_manager: SharedState<ChangeEventManager>,
         listener_database: SharedState<ListenerDatabase>,
+        universe: SharedState<Universe>,
     ) -> Self {
         Self {
             fader_page: FaderPage::new(ctx, change_event_manager, listener_database),
+            visual_page: VisualPage::new(universe, &ctx.egui_ctx),
         }
     }
 }
@@ -48,13 +52,12 @@ impl Illumix {
         let change_event_manager = SharedState::new(ChangeEventManager::new());
         let web_socket = open_websocket(universe.clone(), listener_database.clone()).unwrap();
 
-        let page_instances = PageInstances {
-            fader_page: FaderPage::new(
-                &cc,
-                change_event_manager.clone(),
-                listener_database.clone(),
-            ),
-        };
+        let page_instances = PageInstances::new(
+            cc,
+            change_event_manager.clone(),
+            listener_database.clone(),
+            universe.clone(),
+        );
 
         Illumix {
             active_tab: Tab::FaderPage,
@@ -72,7 +75,6 @@ impl Illumix {
             .send_updates(self.web_socket.clone());
     }
 }
-
 
 impl App for Illumix {
     fn update(&mut self, ctx: &eframe::egui::Context, frame: &mut eframe::Frame) {
@@ -116,7 +118,7 @@ impl App for Illumix {
                 ui.label("Here you can pick colors");
             }
             Tab::MovingHeads => {
-                ui.label("Turn your head around");
+                self.page_instances.visual_page.show(ctx);
             }
         });
 

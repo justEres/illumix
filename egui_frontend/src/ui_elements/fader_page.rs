@@ -33,11 +33,10 @@ impl FaderPage {
     ) -> Self {
         let panel_resolution = Vec2 { x: 1000., y: 800. };
 
-        let fader_list: SharedState<[fader::Fader; 24]> = SharedState::new(std::array::from_fn(|_| fader::Fader::new(None, None)));
+        let fader_list: SharedState<[fader::Fader; 24]> =
+            SharedState::new(std::array::from_fn(|_| fader::Fader::new(None, None)));
 
         let rect = Rect::from_min_size(Pos2::ZERO, egui::vec2(0.0, 0.0));
-        
-
 
         let mut fp = Self {
             fader_list,
@@ -50,22 +49,23 @@ impl FaderPage {
         fp
     }
 
-    pub fn add_listeners(&mut self){
+    pub fn add_listeners(&mut self) {
         let mut listener_database = self.listener_database.borrow_mut();
-        for i in 0..self.fader_list.borrow().len(){
+        for i in 0..self.fader_list.borrow().len() {
             let fader_list = self.fader_list.clone();
-            listener_database.add_listener(i as u8, 0, Box::new(move |fc| {
-                match fc{
+            listener_database.add_listener(
+                i as u8,
+                0,
+                Box::new(move |fc| match fc {
                     FixtureComponent::Dimmer(d) => {
                         fader_list.borrow_mut()[i].fader_value = d.intensity;
                         web_sys::console::log_1(&"updated fader intensity".into());
-                    },
+                    }
                     _ => {}
-                }
-            }));
+                }),
+            );
         }
         web_sys::console::log_1(&"created listeners".into());
-
     }
 
     pub fn show(&mut self, ctx: &egui::Context) {
@@ -176,4 +176,3 @@ impl FaderPage {
         }
     }
 }
-
