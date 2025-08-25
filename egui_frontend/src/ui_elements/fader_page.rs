@@ -98,6 +98,7 @@ impl FaderPage {
 
     fn draw_slider_bank(&mut self, ui: &mut Ui) {
         for i in 0..24 {
+            
             let mut offset = Vec2 { x: 0., y: 0. };
             if (i > 5 && i < 12) || (i > 17) {
                 offset = Vec2 {
@@ -118,7 +119,8 @@ impl FaderPage {
                 };
             }
 
-            let local = egui::Rect::from_min_size(self.rect.min + offset, egui::vec2(20.0, 20.0));
+            let local = egui::Rect::from_min_size(self.ui_auto_scaller.get_rect(self.rect, true, i as u8).min + 
+                                                        Vec2{x: self.ui_auto_scaller.get_cell_size().x / 4., y:0.}, egui::vec2(20.0, 20.0));
 
             let response = ui.put(
                 local,
@@ -139,13 +141,9 @@ impl FaderPage {
             }
 
             let local = egui::Rect::from_min_size(
-                self.rect.min
-                    + offset
-                    + Vec2 {
-                        x: 0.,
-                        y: self.panel_resolution.y * 40.,
-                    },
-                egui::vec2(self.panel_resolution.y * 6., 20.0),
+                self.ui_auto_scaller.get_rect(self.rect, false, i as u8).min + 
+                Vec2{x:self.ui_auto_scaller.get_cell_size().x / 4., y: 0.},
+                egui::vec2(self.ui_auto_scaller.get_cell_size().x / 2., self.ui_auto_scaller.get_cell_size().x / 2.),
             );
 
             if self.fader_list.borrow()[i].is_selected == false
@@ -157,29 +155,27 @@ impl FaderPage {
             {
                 self.fader_list.borrow_mut()[i].is_selected = false;
             }
-
-            let local = egui::Rect::from_min_size(
-                self.rect.min
-                    + offset
-                    + Vec2 {
-                        x: self.panel_resolution.y * 2.5,
-                        y: self.panel_resolution.y * 40.5,
-                    },
-                egui::vec2(self.panel_resolution.y * 1., 9.),
-            );
-
-            ui.allocate_rect(local, egui::Sense::hover());
-
-            let mut color = Color32::from_rgb(0, 0, 0);
+            
+            
 
             if self.fader_list.borrow()[i].is_selected == true {
-                color = Color32::from_rgb(255, 200, 120);
+                let local = egui::Rect::from_min_size(
+                    self.ui_auto_scaller.get_rect(self.rect, false, i as u8).min + 
+                    Vec2{x:self.ui_auto_scaller.get_cell_size().x / 2. -self.ui_auto_scaller.get_cell_size().x / 24. ,y: 0.},
+                    egui::vec2(self.ui_auto_scaller.get_cell_size().x / 12., self.ui_auto_scaller.get_cell_size().x / 12.),
+                );
+    
+                ui.allocate_rect(local, egui::Sense::hover());
+    
+                
+                let color = Color32::from_rgb(255, 200, 120);
+                ui.painter().rect_filled(
+                    local, 5.0,   // corner radius
+                    color, // background color
+                );
             }
 
-            ui.painter().rect_filled(
-                local, 5.0,   // corner radius
-                color, // background color
-            );
+            
         }
     }
 }
