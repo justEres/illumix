@@ -13,6 +13,9 @@ mod fixture_component_ui;
 #[path = "ui_elements/fixture_manager.rs"]
 mod fixture_manager;
 
+#[path = "ui_elements/visual_page.rs"]
+mod visual_page;
+
 mod fixture_component_listener;
 mod illumix;
 mod websocket;

@@ -1,10 +1,12 @@
 use eframe::{App, CreationContext, egui};
 use fixture_lib::universe::Universe;
+use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::WebSocket;
 
 use crate::{
     fader_page::{self, FaderPage},
-    fixture_component_listener::{ListenerDatabase, SharedState},
+    fixture_component_listener::{ChangeEventManager, ListenerDatabase, SharedState},
+    visual_page::VisualPage,
     websocket::open_websocket,
 };
 
@@ -17,12 +19,19 @@ enum Tab {
 
 pub struct PageInstances {
     fader_page: FaderPage,
+    visual_page: VisualPage,
 }
 
 impl PageInstances {
-    fn new(ctx: &CreationContext) -> Self {
+    fn new(
+        ctx: &CreationContext,
+        change_event_manager: SharedState<ChangeEventManager>,
+        listener_database: SharedState<ListenerDatabase>,
+        universe: SharedState<Universe>,
+    ) -> Self {
         Self {
-            fader_page: FaderPage::new(ctx),
+            fader_page: FaderPage::new(ctx, change_event_manager, listener_database),
+            visual_page: VisualPage::new(universe, &ctx.egui_ctx),
         }
     }
 }
@@ -31,6 +40,7 @@ pub struct Illumix {
     active_tab: Tab,
     universe: SharedState<Universe>,
     listener_database: SharedState<ListenerDatabase>,
+    change_event_manager: SharedState<ChangeEventManager>,
     web_socket: WebSocket,
     page_instances: PageInstances,
 }
@@ -39,19 +49,30 @@ impl Illumix {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         let universe = SharedState::new(Universe::new());
         let listener_database = SharedState::new(ListenerDatabase::new());
-        let web_socket = open_websocket(universe.clone(), listener_database.clone());
+        let change_event_manager = SharedState::new(ChangeEventManager::new());
+        let web_socket = open_websocket(universe.clone(), listener_database.clone()).unwrap();
 
-        let page_instances = PageInstances {
-            fader_page: FaderPage::new(&cc),
-        };
+        let page_instances = PageInstances::new(
+            cc,
+            change_event_manager.clone(),
+            listener_database.clone(),
+            universe.clone(),
+        );
 
         Illumix {
             active_tab: Tab::FaderPage,
             universe,
             listener_database,
+            change_event_manager,
             web_socket,
             page_instances,
         }
+    }
+
+    pub fn send_updates(&mut self) {
+        self.change_event_manager
+            .borrow_mut()
+            .send_updates(self.web_socket.clone());
     }
 }
 
@@ -97,8 +118,11 @@ impl App for Illumix {
                 ui.label("Here you can pick colors");
             }
             Tab::MovingHeads => {
-                ui.label("Turn your head around");
+                self.page_instances.visual_page.show(ctx);
             }
         });
+
+        self.send_updates();
+        ctx.request_repaint();
     }
 }

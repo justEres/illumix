@@ -4,8 +4,8 @@ use fixture_lib::{
 };
 use wasm_bindgen::{JsCast, prelude::Closure};
 use web_sys::{
-    ErrorEvent, Event, MessageEvent,
-    js_sys::{ArrayBuffer, Uint8Array},
+    ErrorEvent, Event, MessageEvent, WebSocket,
+    js_sys::{ArrayBuffer, Error, Uint8Array},
 };
 
 use crate::fixture_component_listener::{ListenerDatabase, SharedState};
@@ -13,8 +13,8 @@ use crate::fixture_component_listener::{ListenerDatabase, SharedState};
 pub fn open_websocket(
     uni: SharedState<Universe>,
     listener_database: SharedState<ListenerDatabase>,
-) -> web_sys::WebSocket {
-    let ws = web_sys::WebSocket::new("ws://127.0.0.1:8000").unwrap();
+) -> Result<web_sys::WebSocket, Error> {
+    let ws = web_sys::WebSocket::new("ws://127.0.0.1:8000")?;
 
     ws.set_binary_type(web_sys::BinaryType::Arraybuffer);
 
@@ -53,7 +53,7 @@ pub fn open_websocket(
     }) as Box<dyn FnMut(_)>);
     ws.set_onopen(Some(onopen_callback.as_ref().unchecked_ref()));
     onopen_callback.forget();
-    ws
+    Ok(ws)
 }
 
 pub fn handle_packet(
@@ -73,6 +73,7 @@ pub fn handle_packet(
             *uni.borrow_mut() = universe;
         }
         PacketType::FixtureComponentUpdated(fixture_component_updated) => {
+            //web_sys::console::log_1(&"got fixture update packet".into());
             listener_database.borrow().notify(
                 fixture_component_updated.fixture_id,
                 fixture_component_updated.component_index,
@@ -83,4 +84,9 @@ pub fn handle_packet(
 
     //let packet_text = format!("{:?}",packet);
     //web_sys::console::log_1(&packet_text.into());
+}
+
+pub fn send_packet(ws: WebSocket, packet: Packet) {
+    ws.send_with_u8_array(&packet.serialize())
+        .expect("Couldnt send packet.");
 }

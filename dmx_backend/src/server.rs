@@ -58,7 +58,10 @@ async fn handle_connection(
     let (tx, mut rx) = unbounded_channel();
 
     let uuid = Uuid::new_v4();
-    peers.lock().await.insert(uuid, tx);
+
+    {
+        peers.lock().await.insert(uuid, tx);
+    }
 
     let send_task = tokio::spawn(async move {
         while let Some(msg) = rx.recv().await {
@@ -67,6 +70,7 @@ async fn handle_connection(
             }
         }
     });
+
     let recv_task = tokio::spawn(async move {
         while let Some(Ok(msg)) = ws_receiver.next().await {
             if msg.is_text() || msg.is_binary() {
@@ -94,22 +98,30 @@ async fn broadcast(uuid: &Uuid, peers: PeerMap, message: &Message) {
 }
 
 async fn handle_message(msg: Message, peers: PeerMap, uuid: Uuid, universe: Arc<Mutex<Universe>>) {
-    let peer_map = peers.lock().await;
-    let tx = peer_map.get(&uuid).unwrap();
     let packet = Packet::deserialize(msg.into_data().to_vec());
 
     match &packet.packet_type {
         PacketType::RequestFullUniverse => {
-            let universe = universe.lock().unwrap();
-            let packet = Packet {
-                packet_type: PacketType::FullUniverse(universe.clone()),
-            };
+            let packet: Packet;
+            {
+                let universe = universe.lock().unwrap();
+                packet = Packet {
+                    packet_type: PacketType::FullUniverse(universe.clone()),
+                };
+            }
+            let peer_map = peers.lock().await;
+            let tx = peer_map.get(&uuid).unwrap();
             tx.send(packet.serialize().into()).unwrap();
         }
         PacketType::FixtureComponentUpdated(fcu) => {
-            let mut universe = universe.lock().unwrap();
-            universe_update_fixture_component(&mut universe, fcu.clone());
-            broadcast(&uuid, peers.clone(), &packet.serialize().into());
+            //info!("fixture: {}, component: {:?}",fcu.fixture_id,fcu.component);
+            {
+                let mut universe = universe.lock().unwrap();
+                universe_update_fixture_component(&mut universe, fcu.clone());
+            }
+            //info!("broadcasting component: {:?}",fcu.component);
+            broadcast(&uuid, peers.clone(), &packet.serialize().into()).await;
+            
         }
         _ => {
             warn!("Server got unimplemented Packet {:?}", packet);
