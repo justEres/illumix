@@ -13,6 +13,11 @@ use web_sys::console::info;
 use crate::fader_page::fader::Fader;
 use crate::fixture_component_listener::{ChangeEventManager, ListenerDatabase, SharedState};
 
+use crate::fader_page::ui_auto_scalling::AutoScaller;
+
+#[path = "ui_helper/ui_auto_scalling.rs"]
+mod ui_auto_scalling;
+
 mod fader;
 
 pub struct FaderPage {
@@ -22,6 +27,7 @@ pub struct FaderPage {
     panel_resolution: Vec2,
     change_event_manager: SharedState<ChangeEventManager>,
     listener_database: SharedState<ListenerDatabase>,
+    ui_auto_scaller: ui_auto_scalling::AutoScaller,
     rect: Rect,
 }
 
