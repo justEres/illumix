@@ -110,7 +110,7 @@ impl ChangeEventManager {
                 }),
             };
             send_packet(ws.clone(), packet);
-            web_sys::console::log_1(&"sent update".to_string().into());
+            //web_sys::console::log_1(&"sent update".to_string().into());
         }
     }
 }

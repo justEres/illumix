@@ -21,7 +21,7 @@ use tungstenite::Message;
 use uuid::Uuid;
 
 type Tx = UnboundedSender<Message>;
-type PeerMap = Arc<tokio::sync::Mutex<HashMap<Uuid, Tx>>>;
+pub type PeerMap = Arc<tokio::sync::Mutex<HashMap<Uuid, Tx>>>;
 
 pub async fn start_ws_server(uni: Arc<Mutex<Universe>>) {
     let addr = "127.0.0.1:8000";
@@ -37,7 +37,7 @@ pub async fn start_ws_server(uni: Arc<Mutex<Universe>>) {
     }
 }
 
-async fn handle_connection(
+pub async fn handle_connection(
     peers: PeerMap,
     stream: TcpStream,
     addr: SocketAddr,
@@ -97,7 +97,12 @@ async fn broadcast(uuid: &Uuid, peers: PeerMap, message: &Message) {
     }
 }
 
-async fn handle_message(msg: Message, peers: PeerMap, uuid: Uuid, universe: Arc<Mutex<Universe>>) {
+pub async fn handle_message(
+    msg: Message,
+    peers: PeerMap,
+    uuid: Uuid,
+    universe: Arc<Mutex<Universe>>,
+) {
     let packet = Packet::deserialize(msg.into_data().to_vec());
 
     match &packet.packet_type {
@@ -121,7 +126,6 @@ async fn handle_message(msg: Message, peers: PeerMap, uuid: Uuid, universe: Arc<
             }
             //info!("broadcasting component: {:?}",fcu.component);
             broadcast(&uuid, peers.clone(), &packet.serialize().into()).await;
-            
         }
         _ => {
             warn!("Server got unimplemented Packet {:?}", packet);
