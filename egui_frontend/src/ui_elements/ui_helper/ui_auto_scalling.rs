@@ -11,7 +11,7 @@ pub struct AutoScaller{
 impl AutoScaller{
     pub fn new() -> Self{
         Self{
-            rect: Rect::from_min_size(Pos2::ZERO, egui::vec2(0.0, 0.0)),
+            rect: Rect::from_min_max(Pos2::ZERO, egui::pos2(0.0, 0.0)),
             panel_resolution: Vec2 { x: 0., y: 0. },
         }
     }
@@ -78,23 +78,31 @@ impl AutoScaller{
 
     }
 
-    pub fn get_ctrl_button(&mut self, fader_id: u8) -> Rect{
+    pub fn get_ctrl_button(&mut self, fader_id: u8, rect: Rect) -> Rect{
+        self.rect = rect;
+        let panel_resolution = Vec2 { x: self.rect.max.x, y: self.rect.max.y  - self.rect.min.y + 16.};
+        let button_starting_min = (panel_resolution.x - panel_resolution.x / 13. + panel_resolution.x / 65.);
+
         match fader_id {
             0 => return Rect::from_min_max(
-                Pos2 { x: (self.panel_resolution.x - (self.rect.max.x - self.panel_resolution.x) + (self.rect.max.x - self.panel_resolution.x) /6.) , y: self.panel_resolution.y / 2. },
-                Pos2 { x: (self.rect.max.x - self.panel_resolution.x - (self.rect.max.x - self.panel_resolution.x) + (self.rect.max.x - self.panel_resolution.x) /6.) / 2., y: self.rect.max.y }
+                Pos2 { x: button_starting_min, y: panel_resolution.y / 2.},
+                Pos2 { x: button_starting_min + self.get_cell_size().x / 2., y: panel_resolution.y/ 2. + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
             ),
             1 => return Rect::from_min_max(
-                Pos2 { x: self.panel_resolution.x - (self.rect.max.x - self.panel_resolution.x) + (self.rect.max.x - self.panel_resolution.x) /6. , y: self.panel_resolution.y / 2. },
-                Pos2 { x: self.rect.max.x, y: self.rect.max.y }
+                Pos2 { x: button_starting_min, y: panel_resolution.y / 2. + ((panel_resolution.y/2.) / 4.) },
+                Pos2 { x: button_starting_min + self.get_cell_size().x / 2., y: panel_resolution.y/ 2. + ((panel_resolution.y/2.) / 4.) + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
             ),
             2 => return Rect::from_min_max(
-                Pos2 { x: self.panel_resolution.x - (self.rect.max.x - self.panel_resolution.x) + (self.rect.max.x - self.panel_resolution.x) /6. , y: self.panel_resolution.y / 2. },
-                Pos2 { x: self.rect.max.x, y: self.rect.max.y }
+                Pos2 { x: button_starting_min, y: panel_resolution.y / 2. + ((panel_resolution.y/2.) / 4.) * 2.},
+                Pos2 { x: button_starting_min + self.get_cell_size().x / 2., y: panel_resolution.y/ 2. + ((panel_resolution.y/2.) / 4.) *2. + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
+            ),
+            3 => return Rect::from_min_max(
+                Pos2 { x: button_starting_min, y: panel_resolution.y / 2. + ((panel_resolution.y/2.) / 4.) * 3.},
+                Pos2 { x: button_starting_min + self.get_cell_size().x / 2., y: panel_resolution.y/ 2. + ((panel_resolution.y/2.) / 4.) *3. + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
             ),
             _ => return Rect::from_min_max(
-                Pos2 { x: self.panel_resolution.x - (self.rect.max.x - self.panel_resolution.x) + (self.rect.max.x - self.panel_resolution.x) /6. , y: self.panel_resolution.y / 2. },
-                Pos2 { x: self.rect.max.x, y: self.rect.max.y }
+                Pos2 { x: (self.panel_resolution.x / 2. + self.panel_resolution.x / 2. - self.panel_resolution.x / 26.) + ((self.rect.max.x - (self.panel_resolution.x / 2. + self.panel_resolution.x / 2. - self.panel_resolution.x / 26.))  / 4.), y: self.panel_resolution.y / 2. },
+                Pos2 { x: self.rect.max.x -((self.rect.max.x - (self.panel_resolution.x / 2. + self.panel_resolution.x / 2. - self.panel_resolution.x / 26.))  / 4.), y: self.rect.max.y }
             )
     
         }

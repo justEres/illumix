@@ -29,6 +29,10 @@ pub struct FaderPage {
     listener_database: SharedState<ListenerDatabase>,
     ui_auto_scaller: ui_auto_scalling::AutoScaller,
     rect: Rect,
+
+    group_select: bool,
+    first_selected: Option<u8>,
+    second_selection: Option<u8>,
 }
 
 impl FaderPage {
@@ -51,6 +55,10 @@ impl FaderPage {
             rect,
             change_event_manager,
             listener_database,
+
+            group_select: false,
+            first_selected: None,
+            second_selection: None,
         };
         fp.add_listeners();
         fp
@@ -76,8 +84,8 @@ impl FaderPage {
     }
 
     pub fn show(&mut self, ctx: &egui::Context) {
-        CentralPanel::default().show(ctx, |ui| {
             egui::CentralPanel::default().show(ctx, |ui| {
+                ctx.request_repaint();
                 self.rect = ui.max_rect();
                 self.panel_resolution = Vec2 {
                     x: self.rect.max.x / 100.,
@@ -91,33 +99,18 @@ impl FaderPage {
 
                 ui.set_style(style.clone());
 
+                
                 self.draw_slider_bank(ui);
+
+                self.draw_ctrl_buttons(ui)
             });
-        });
+        
     }
 
     fn draw_slider_bank(&mut self, ui: &mut Ui) {
+
         for i in 0..24 {
             
-            let mut offset = Vec2 { x: 0., y: 0. };
-            if (i > 5 && i < 12) || (i > 17) {
-                offset = Vec2 {
-                    x: (self.panel_resolution.x * 6.),
-                    y: 0.,
-                };
-            }
-
-            if i < 12 {
-                offset += Vec2 {
-                    x: (self.panel_resolution.x * 6.) * i as f32,
-                    y: 0.,
-                };
-            } else {
-                offset += Vec2 {
-                    x: (self.panel_resolution.x * 6.) * (i as f32 - 12.),
-                    y: self.panel_resolution.y * 50.,
-                };
-            }
 
             let local = egui::Rect::from_min_size(self.ui_auto_scaller.get_rect(self.rect, true, i as u8).min + 
                                                         Vec2{x: self.ui_auto_scaller.get_cell_size().x / 4., y:0.}, egui::vec2(20.0, 20.0));
@@ -173,9 +166,68 @@ impl FaderPage {
                     local, 5.0,   // corner radius
                     color, // background color
                 );
+
+                if self.group_select && self.first_selected != None{
+                    //ui.label(format!("{}",(self.first_selected.unwrap())));
+                    self.second_selection = Some(i as u8);
+                    
+                    if self.second_selection.unwrap() < self.first_selected.unwrap(){
+                        for k in self.second_selection.unwrap()..=self.first_selected .unwrap(){
+                            self.fader_list.borrow_mut()[k as usize].is_selected = true;
+                            
+                        }
+                    }else{
+                        for k in self.first_selected.unwrap()..=self.second_selection.unwrap(){
+                            self.fader_list.borrow_mut()[k as usize].is_selected = true;
+                            
+                        }
+                    }
+                    
+
+                }else if self.group_select{
+                    self.first_selected = Some(i as u8);
+                    self.fader_list.borrow_mut()[i].is_selected = false;
+                }
+                
             }
 
             
+        }
+    }
+
+    fn draw_ctrl_buttons(&mut self, ui: &mut Ui){
+        let local = self.ui_auto_scaller.get_ctrl_button(0, self.rect);
+        if ui.put(local, Button::new("All")).clicked(){
+            self.ctrl_button_trigger(0);
+        }
+
+        let local = self.ui_auto_scaller.get_ctrl_button(1, self.rect);
+        if ui.put(local, Button::new("Config")).clicked(){
+            self.ctrl_button_trigger(1);
+        }
+
+        let local = self.ui_auto_scaller.get_ctrl_button(2, self.rect);
+        if ui.put(local, Button::new("Clear")).clicked(){
+            self.ctrl_button_trigger(2);
+        }
+
+        let local = self.ui_auto_scaller.get_ctrl_button(3, self.rect);
+        if ui.put(local, Button::new("Group Select")).clicked(){
+            self.ctrl_button_trigger(3);
+        }
+    }
+
+    fn ctrl_button_trigger(&mut self, button_id: u8){
+        match button_id{
+            0 => for i in 0..24{
+                self.fader_list.borrow_mut()[i].is_selected = true;
+            },
+            1 => return,
+            2 => for i in 0..24{
+                self.fader_list.borrow_mut()[i].is_selected = false;
+            },
+            3 => self.group_select = true,
+            _ => return
         }
     }
 }
