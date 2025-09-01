@@ -50,7 +50,7 @@ impl Illumix {
         let universe = SharedState::new(Universe::new());
         let listener_database = SharedState::new(ListenerDatabase::new());
         let change_event_manager = SharedState::new(ChangeEventManager::new());
-        let web_socket = open_websocket(universe.clone(), listener_database.clone()).unwrap();
+        
 
         let page_instances = PageInstances::new(
             cc,
@@ -58,6 +58,8 @@ impl Illumix {
             listener_database.clone(),
             universe.clone(),
         );
+
+        let web_socket = open_websocket(universe.clone(), listener_database.clone()).unwrap();
 
         Illumix {
             active_tab: Tab::FaderPage,

@@ -10,11 +10,14 @@ use web_sys::{
 
 use crate::fixture_component_listener::{ListenerDatabase, SharedState};
 
+
+
 pub fn open_websocket(
     uni: SharedState<Universe>,
     listener_database: SharedState<ListenerDatabase>,
 ) -> Result<web_sys::WebSocket, Error> {
-    let ws = web_sys::WebSocket::new("ws://127.0.0.1:8000")?;
+    let ws_url = String::from_utf8(include_bytes!("ws_config.txt").to_vec()).unwrap();
+    let ws = web_sys::WebSocket::new(&ws_url)?;
 
     ws.set_binary_type(web_sys::BinaryType::Arraybuffer);
 

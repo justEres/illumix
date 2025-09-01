@@ -74,7 +74,7 @@ impl FaderPage {
                 Box::new(move |fc| match fc {
                     FixtureComponent::Dimmer(d) => {
                         fader_list.borrow_mut()[i].fader_value = d.intensity;
-                        web_sys::console::log_1(&"updated fader intensity".into());
+                        //web_sys::console::log_1(&"updated fader intensity".into());
                     }
                     _ => {}
                 }),
