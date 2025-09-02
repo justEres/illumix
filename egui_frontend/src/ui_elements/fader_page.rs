@@ -1,442 +1,233 @@
-use eframe::egui::{Color32, Pos2, Rect, Style};
-use eframe::egui::{self, CentralPanel, ColorImage, Context, Slider, TextureHandle, Vec2, Window,Ui, Button};
-use egui::{ Frame, Margin};
-use wasm_bindgen::convert::IntoWasmAbi;
+use std::fmt::format;
 
-mod fader_page_setup_window;
-use fader_page_setup_window::FaderPageSetupWindow;
+use eframe::egui::{
+    self, Button, CentralPanel, Color32, ColorImage, Context, Slider, TextureHandle, Ui, UiBuilder,
+    Vec2, Window,
+};
+use eframe::egui::{Pos2, Rect};
+use eframe::{CreationContext, Frame};
+use fixture_lib::fixture::{Dimmer, FixtureComponent};
+use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::console::info;
+
+use crate::fader_page::fader::Fader;
+use crate::fixture_component_listener::{ChangeEventManager, ListenerDatabase, SharedState};
+
+use crate::fader_page::ui_auto_scalling::AutoScaller;
+
+#[path = "ui_helper/ui_auto_scalling.rs"]
+mod ui_auto_scalling;
+
+mod fader;
 
 pub struct FaderPage {
-    group_value: u8,
-    y_offset: f32,
+    fader_list: SharedState<[fader::Fader; 24]>,
 
-    button_pressed: [bool; 32],
-    fader_manual_override: [bool; 32],
+    //Styling
+    panel_resolution: Vec2,
+    change_event_manager: SharedState<ChangeEventManager>,
+    listener_database: SharedState<ListenerDatabase>,
+    ui_auto_scaller: ui_auto_scalling::AutoScaller,
+    rect: Rect,
 
     group_select: bool,
-    counter: u8,
-    setup_toggle: bool,
-
-    pub fader: Vec<Fader>,
-
-    setup_window: FaderPageSetupWindow,
-
-    selection_save: Vec<bool>,
-    fader_value_save: Vec<u8>,
-
-    screen_size: Vec2,
-
-    original_style: Style,
-
-    
-}
-#[derive(Clone)]
-pub struct Fader {
-    pub id: Option<u8>,
-    pub fader_value: u8,
-    pub fader_selected: bool,
+    first_selected: Option<u8>,
+    second_selection: Option<u8>,
 }
 
 impl FaderPage {
-    pub fn new(ctx: &egui::Context) -> Self {
-        let mut fader = Vec::new();
-        let mut selection_save = Vec::new();
-        let mut fader_value_save = Vec::new();
+    pub fn new(
+        ctx: &CreationContext,
+        change_event_manager: SharedState<ChangeEventManager>,
+        listener_database: SharedState<ListenerDatabase>,
+    ) -> Self {
+        let panel_resolution = Vec2 { x: 1000., y: 800. };
 
-        for i in 0..=31 {
-            fader.push(Fader {
-                id: None,
-                fader_value: 0,
-                fader_selected: false,
-            });
-        }
-        for i in 0..=31 {
-            selection_save.push(false);
-            fader_value_save.push(0);
-        }
+        let fader_list: SharedState<[fader::Fader; 24]> =
+            SharedState::new(std::array::from_fn(|_| fader::Fader::new(None, None)));
 
-        Self {
-            group_value: 0,
-            y_offset: 0.,
+        let rect = Rect::from_min_size(Pos2::ZERO, egui::vec2(0.0, 0.0));
 
-            button_pressed: [false; 32],
-            fader_manual_override: [false; 32],
-
-            setup_toggle: false,
+        let mut fp = Self {
+            fader_list,
+            panel_resolution,
+            ui_auto_scaller: AutoScaller::new(),
+            rect,
+            change_event_manager,
+            listener_database,
 
             group_select: false,
-            counter: 0,
-            fader,
-            setup_window: FaderPageSetupWindow::new(ctx),
+            first_selected: None,
+            second_selection: None,
+        };
+        fp.add_listeners();
+        fp
+    }
 
-            selection_save,
-            fader_value_save,
-
-            screen_size: Vec2 { x: 0., y: 0. },
-
-            original_style: (*ctx.style()).clone(),
+    pub fn add_listeners(&mut self) {
+        let mut listener_database = self.listener_database.borrow_mut();
+        for i in 0..self.fader_list.borrow().len() {
+            let fader_list = self.fader_list.clone();
+            listener_database.add_listener(
+                i as u8,
+                0,
+                Box::new(move |fc| match fc {
+                    FixtureComponent::Dimmer(d) => {
+                        fader_list.borrow_mut()[i].fader_value = d.intensity;
+                        //web_sys::console::log_1(&"updated fader intensity".into());
+                    }
+                    _ => {}
+                }),
+            );
         }
+        web_sys::console::log_1(&"created listeners".into());
     }
 
     pub fn show(&mut self, ctx: &egui::Context) {
-        //ctx.set_pixels_per_point(2.);
+            egui::CentralPanel::default().show(ctx, |ui| {
+                ctx.request_repaint();
+                self.rect = ui.max_rect();
+                self.panel_resolution = Vec2 {
+                    x: self.rect.max.x / 100.,
+                    y: self.rect.max.y / 100.,
+                };
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            self.screen_size = ui.available_size();
-            
-            let original_style = ui.ctx().style().clone();
-            // Styling
-            let mut style = (*ctx.style()).clone();
-            style.spacing.slider_width = ((self.screen_size.y / 100.) * 37.5); // Wider slider
-            style.spacing.interact_size.y = ((self.screen_size.y / 100.) * 6.); // Taller handle
-            //style.spacing.interact_size.x = ((self.screen_size.x / 100.) * 4.);
-            style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
-            
-            ui.set_style(style.clone());
-            
-            self.counter = 0;
+                let mut style = (*ctx.style()).clone();
+                style.spacing.slider_width = (self.ui_auto_scaller.get_cell_size().y); // Wider slider
+                style.spacing.interact_size.y = (self.ui_auto_scaller.get_cell_size().x / 1.75); // Taller handle
+                style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
 
-            self.y_offset = 0.;
-            for y in 0..4 {
-                if y > 1 {
-                    self.y_offset = ((self.screen_size.y / 100.) * 50.);
-                }
-                for x in 0..8 {
-                    if y == 3 || y == 1 {
-                        match self.fader[self.counter as usize].id {
-                            Some(T) => {
-                                self.draw_slider_bank(
-                                    ui,
-                                    Vec2 {
-                                        x: (((self.screen_size.x / 100.) * (5.5 * x as f32))
-                                            + ((self.screen_size.x / 100.) * 50.)),
-                                        y: self.y_offset,
-                                    },
-                                    true,
-                                );
-                            }
-                            None => {
-                                self.draw_slider_bank(
-                                    ui,
-                                    Vec2 {
-                                        x: (((self.screen_size.x / 100.) * (5.5 * x as f32))
-                                            + ((self.screen_size.x / 100.) * 50.)),
-                                        y: self.y_offset,
-                                    },
-                                    false,
-                                );
-                            }
-                        }
-                    } else {
-                        match self.fader[self.counter as usize].id {
-                            Some(T) => {
-                                self.draw_slider_bank(
-                                    ui,
-                                    Vec2 {
-                                        x: ((self.screen_size.x / 100.) * 5.5) * x as f32,
-                                        y: self.y_offset,
-                                    },
-                                    true,
-                                );
-                            }
-                            None => {
-                                self.draw_slider_bank(
-                                    ui,
-                                    Vec2 {
-                                        x: ((self.screen_size.x / 100.) * 5.5) * x as f32,
-                                        y: self.y_offset,
-                                    },
-                                    false,
-                                );
-                            }
-                        }
-                    }
-                    self.counter += 1
-                }
-            }
+                ui.set_style(style.clone());
 
-            self.draw_slider_group(
-                ui,
-                Vec2 {
-                    x: (((self.screen_size.x / 100.) * (5.5 * 9.))
-                        + ((self.screen_size.x / 100.) * 45.)),
-                    y: (self.screen_size.y / 100.) * 25.,
-                },
-            );
-            if self.draw_button(
-                ui,
-                Vec2 {
-                    x: (((self.screen_size.x / 100.) * (5.5 * 9.))
-                        + ((self.screen_size.x / 100.) * 45.)),
-                    y: (self.screen_size.y / 100.) * 65.,
-                },
-                "Reset   Sel".into(),
-                None,
-            ) {
-                for i in 0..32 {
-                    self.fader[i].fader_selected = false;
-                }
-            }
-            if self.draw_button(
-                ui,
-                Vec2 {
-                    x: (((self.screen_size.x / 100.) * (5.5 * 9.))
-                        + ((self.screen_size.x / 100.) * 45.)),
-                    y: (self.screen_size.y / 100.) * 72.5,
-                },
-                "GR Sel".into(),
-                Some(self.group_select),
-            ) {
-                self.group_select = !self.group_select;
-            }
-            if self.draw_button(
-                ui,
-                Vec2 {
-                    x: (((self.screen_size.x / 100.) * (5.5 * 9.))
-                        + ((self.screen_size.x / 100.) * 45.)),
-                    y: (self.screen_size.y / 100.) * 17.5,
-                },
-                "Clear".into(),
-                None,
-            ) {
-                for i in 0..32 {
-                    self.fader[i].fader_selected = false;
-                }
-                self.button_pressed = [false; 32];
-                self.fader_manual_override = [false; 32];
-                for i in 0..32 {
-                    self.fader[i].fader_value = 0;
-                }
-                self.group_select = false;
-                self.group_value = 0;
-            }
-            if self.draw_button(
-                ui,
-                Vec2 {
-                    x: (((self.screen_size.x / 100.) * (5.5 * 9.))
-                        + ((self.screen_size.x / 100.) * 45.)),
-                    y: (self.screen_size.y / 100.) * 80.,
-                },
-                "Setup".into(),
-                Some(self.setup_toggle),
-            ) {
-                self.setup_toggle = !self.setup_toggle;
-                if self.setup_toggle {
-                    for i in 0..=31 {
-                        self.selection_save[i] = self.fader[i].fader_selected;
-                        self.fader_value_save[i] = self.fader[i].fader_value;
-                    }
-                } else {
-                    for i in 0..=31 {
-                        self.fader[i].fader_selected = self.selection_save[i];
-                        self.fader[i].fader_value = self.fader_value_save[i];
-                    }
-                }
-            }
-            
-            
-            
-            
-            
+                
+                self.draw_slider_bank(ui);
 
-            if self.setup_toggle{
-                self.setup_window.show(ctx,&mut self.fader);
-                self.group_select = false;
-            }
-
-            
-
-            
-            
-        });
-    }
-
-    
-
-    fn draw_slider_group(&mut self, ui: &mut Ui, offset: Vec2){
-        let widget_rect = 
-            Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 20., y: 20.});
-        ui.put(widget_rect,
-        egui::Slider::new(&mut self.group_value, 0..=255).show_value(false)
-            .orientation(egui::SliderOrientation::Vertical)
-            //.handle_shape(egui::style::HandleShape::Rect { aspect_ratio: 1.5 })
-        );
-        //let button_rect =
-        //Rect::from_min_size(ui.min_rect().min + offset + Vec2 { x: 0., y: 290.}, Vec2 { x: 40., y: 20.});
-    }
-
-    fn draw_button(
-        &mut self,
-        ui: &mut Ui,
-        offset: Vec2,
-        name: String,
-        mut pressed: Option<bool>,
-    ) -> bool {
-        let widget_rect = Rect::from_min_size(
-            ui.min_rect().min + offset,
-            Vec2 {
-                x: ((self.screen_size.y / 100.) * 6.),
-                y: ((self.screen_size.y / 100.) * (((self.screen_size.x / 100.) * 3.) / 100.)),
-            },
-        );
-        let button = ui.put(widget_rect, Button::new(name));
-        if pressed != None {
-            if button.clicked() {
-                pressed = Some(!pressed.unwrap());
-            }
-            if pressed.unwrap(){
-                self.draw_frame("".into(), ui, Vec2 { x: ((self.screen_size.y / 100.) * 1.), y: ((self.screen_size.y / 100.) * (((self.screen_size.y / 100.) * 10.) /100.))}, offset + Vec2 { x: ((self.screen_size.y / 100.) * 2.5), y: ((self.screen_size.y / 100.) * 0.5)} ,Color32::from_rgb(255, 200, 120));
-            }
-        }
+                self.draw_ctrl_buttons(ui)
+            });
         
-
-        return button.clicked();
     }
 
-    fn draw_slider_bank(&mut self, ui: &mut Ui, offset: Vec2, patched: bool) {
-        let widget_rect = Rect::from_min_size(ui.min_rect().min + offset, Vec2 { x: 20., y: 20. });
-        ui.put(
-            widget_rect,
-            egui::Slider::new(&mut self.fader[self.counter as usize].fader_value, 0..=255)
-                .show_value(false)
-                .orientation(egui::SliderOrientation::Vertical), //.handle_shape(egui::style::HandleShape::Rect { aspect_ratio: 1.5 })
-        );
+    fn draw_slider_bank(&mut self, ui: &mut Ui) {
 
-        let button_rect = Rect::from_min_size(
-            ui.min_rect().min
-                + offset
-                + Vec2 {
-                    x: 0.,
-                    y: ((self.screen_size.y / 100.) * 40.),
-                },
-            Vec2 {
-                x: ((self.screen_size.y / 100.) * 6.),
-                y: ((self.screen_size.y / 100.) * (((self.screen_size.x / 100.) * 3.) / 100.)),
-            },
-        );
-        /* if ui.put(button_rect, Button::new("name")).t{
-            ui.put(button_rect, Button::new("test"));
-        } */
+        for i in 0..24 {
+            
 
-        // Style the button based on state
+            let local = egui::Rect::from_min_size(self.ui_auto_scaller.get_rect(self.rect, true, i as u8).min + 
+                                                        Vec2{x: self.ui_auto_scaller.get_cell_size().x / 4., y:0.}, egui::vec2(20.0, 20.0));
 
-        let button = Button::new(format!("{}", self.counter + 1));
+            let response = ui.put(
+                local,
+                egui::Slider::new(&mut self.fader_list.borrow_mut()[i].fader_value, 0..=255)
+                    .show_value(false)
+                    .orientation(egui::SliderOrientation::Vertical),
+            );
 
-        let index = self.counter as usize;
-
-        // === Handle manual selection button ===
-        if ui.put(button_rect, button).clicked() {
-            // Flip the current selection state
-            self.fader[index].fader_selected = !self.fader[index].fader_selected;
-
-            // Manually control it now
-            self.fader_manual_override[index] = true;
-
-            // Update button to match the selection
-            self.button_pressed[index] = self.fader[index].fader_selected;
-        }
-
-        if self.fader[self.counter as usize].fader_selected {
-            // Apply red fill when clicked
-            /* button = button.fill(Color32::DARK_RED); */
-            if self.setup_toggle || !patched {
-                if !patched {
-                    self.draw_frame(
-                        "".into(),
-                        ui,
-                        Vec2 {
-                            x: ((self.screen_size.y / 100.) * 1.),
-                            y: ((self.screen_size.y / 100.)
-                                * (((self.screen_size.y / 100.) * 10.) / 100.)),
-                        },
-                        offset
-                            + Vec2 {
-                                x: ((self.screen_size.y / 100.) * 2.5),
-                                y: ((self.screen_size.y / 100.) * 40.5),
-                            },
-                        Color32::from_rgb(255, 0, 0),
-                    );
-                } else {
-                    self.draw_frame(
-                        "".into(),
-                        ui,
-                        Vec2 {
-                            x: ((self.screen_size.y / 100.) * 1.),
-                            y: ((self.screen_size.y / 100.)
-                                * (((self.screen_size.y / 100.) * 10.) / 100.)),
-                        },
-                        offset
-                            + Vec2 {
-                                x: ((self.screen_size.y / 100.) * 2.5),
-                                y: ((self.screen_size.y / 100.) * 40.5),
-                            },
-                        Color32::from_rgb(255, 200, 120),
-                    );
-                }
-            } else {
-                self.draw_frame(
-                    "".into(),
-                    ui,
-                    Vec2 {
-                        x: ((self.screen_size.y / 100.) * 1.),
-                        y: ((self.screen_size.y / 100.)
-                            * (((self.screen_size.y / 100.) * 10.) / 100.)),
-                    },
-                    offset
-                        + Vec2 {
-                            x: ((self.screen_size.y / 100.) * 2.5),
-                            y: ((self.screen_size.y / 100.) * 40.5),
-                        },
-                    Color32::from_rgb(255, 200, 120),
+            if response.changed() {
+                self.fader_list.borrow_mut()[i].fader_value_changed();
+                self.change_event_manager.borrow_mut().create_event(
+                    i as u8,
+                    0,
+                    fixture_lib::fixture::FixtureComponent::Dimmer(Dimmer {
+                        intensity: self.fader_list.borrow()[i].fader_value,
+                    }),
                 );
             }
 
-            if self.group_select {
-                self.fader[self.counter as usize].fader_value = self.group_value as u8;
+            let local = egui::Rect::from_min_size(
+                self.ui_auto_scaller.get_rect(self.rect, false, i as u8).min + 
+                Vec2{x:self.ui_auto_scaller.get_cell_size().x / 4., y: 0.},
+                egui::vec2(self.ui_auto_scaller.get_cell_size().x / 2., self.ui_auto_scaller.get_cell_size().x / 2.),
+            );
+
+            if self.fader_list.borrow()[i].is_selected == false
+                && ui.put(local, Button::new(format!("{}", i + 1))).clicked()
+            {
+                self.fader_list.borrow_mut()[i].is_selected = true;
+            } else if self.fader_list.borrow()[i].is_selected == true
+                && ui.put(local, Button::new(format!("{}", i + 1))).clicked()
+            {
+                self.fader_list.borrow_mut()[i].is_selected = false;
             }
-        }
+            
+            
 
-        // === Auto-selection fallback ===
-        if !self.fader_manual_override[index] {
-            self.fader[index].fader_selected = self.fader[index].fader_value > 0;
-        }
+            if self.fader_list.borrow()[i].is_selected == true {
+                let local = egui::Rect::from_min_size(
+                    self.ui_auto_scaller.get_rect(self.rect, false, i as u8).min + 
+                    Vec2{x:self.ui_auto_scaller.get_cell_size().x / 2. -self.ui_auto_scaller.get_cell_size().x / 24. ,y: 0.},
+                    egui::vec2(self.ui_auto_scaller.get_cell_size().x / 12., self.ui_auto_scaller.get_cell_size().x / 12.),
+                );
+    
+                ui.allocate_rect(local, egui::Sense::hover());
+    
+                
+                let color = Color32::from_rgb(255, 200, 120);
+                ui.painter().rect_filled(
+                    local, 5.0,   // corner radius
+                    color, // background color
+                );
 
-        // === Optional: Exit manual mode if fader returns to 0 and button not pressed ===
-        if self.fader[index].fader_value == 0
-            && self.fader_manual_override[index]
-            && !self.button_pressed[index]
-        {
-            self.fader_manual_override[index] = false;
-        }
+                if self.group_select && self.first_selected != None{
+                    //ui.label(format!("{}",(self.first_selected.unwrap())));
+                    self.second_selection = Some(i as u8);
+                    
+                    if self.second_selection.unwrap() < self.first_selected.unwrap(){
+                        for k in self.second_selection.unwrap()..=self.first_selected .unwrap(){
+                            self.fader_list.borrow_mut()[k as usize].is_selected = true;
+                            
+                        }
+                    }else{
+                        for k in self.first_selected.unwrap()..=self.second_selection.unwrap(){
+                            self.fader_list.borrow_mut()[k as usize].is_selected = true;
+                            
+                        }
+                    }
+                    
 
-        if self.fader[index].fader_value == 0
-            && self.fader_manual_override[index]
-            && !self.button_pressed[index]
-        {
-            self.fader_manual_override[index] = false;
+                }else if self.group_select{
+                    self.first_selected = Some(i as u8);
+                    self.fader_list.borrow_mut()[i].is_selected = false;
+                }
+                
+            }
+
+            
         }
     }
 
-    fn draw_frame(&self, name: String, ui: &mut Ui, size: Vec2, offset: Vec2, color: Color32) {
-        let pos = ui.min_rect().min + offset;
-        let rect = Rect::from_min_size(pos, size);
-        ui.allocate_rect(rect, egui::Sense::hover()); // Reserve space
+    fn draw_ctrl_buttons(&mut self, ui: &mut Ui){
+        let local = self.ui_auto_scaller.get_ctrl_button(0, self.rect);
+        if ui.put(local, Button::new("All")).clicked(){
+            self.ctrl_button_trigger(0);
+        }
 
-        // Paint background manually
+        let local = self.ui_auto_scaller.get_ctrl_button(1, self.rect);
+        if ui.put(local, Button::new("Config")).clicked(){
+            self.ctrl_button_trigger(1);
+        }
 
-        ui.painter().rect_filled(
-            rect,
-            5.0,                                                // corner radius
-            Color32::from_rgb(color.r(), color.g(), color.b()), // background color
-        );
+        let local = self.ui_auto_scaller.get_ctrl_button(2, self.rect);
+        if ui.put(local, Button::new("Clear")).clicked(){
+            self.ctrl_button_trigger(2);
+        }
 
-        // Paint centered text
-        ui.painter().text(
-            rect.center(),
-            egui::Align2::CENTER_CENTER,
-            name,
-            egui::TextStyle::Button.resolve(ui.style()),
-            Color32::WHITE,
-        );
+        let local = self.ui_auto_scaller.get_ctrl_button(3, self.rect);
+        if ui.put(local, Button::new("Group Select")).clicked(){
+            self.ctrl_button_trigger(3);
+        }
+    }
+
+    fn ctrl_button_trigger(&mut self, button_id: u8){
+        match button_id{
+            0 => for i in 0..24{
+                self.fader_list.borrow_mut()[i].is_selected = true;
+            },
+            1 => return,
+            2 => for i in 0..24{
+                self.fader_list.borrow_mut()[i].is_selected = false;
+            },
+            3 => self.group_select = true,
+            _ => return
+        }
     }
 }

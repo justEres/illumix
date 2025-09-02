@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::fixture::{self, Fixture};
+use crate::fixture::{Fixture};
 
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Universe {
     pub fixtures: Vec<Fixture>,
 }
@@ -14,18 +14,18 @@ impl Universe {
         }
     }
 
-    pub fn get_fixture_by_id(&self, id: u8) -> Option<&Fixture>{
-        for fixture in &self.fixtures{
-            if fixture.id == id{
+    pub fn get_fixture_by_id(&self, id: u8) -> Option<&Fixture> {
+        for fixture in &self.fixtures {
+            if fixture.id == id {
                 return Some(&fixture);
             }
         }
         None
     }
 
-    pub fn get_fixture_by_id_mut(&mut self, id: u8) -> Option<&mut Fixture>{
-        for fixture in &mut self.fixtures{
-            if fixture.id == id{
+    pub fn get_fixture_by_id_mut(&mut self, id: u8) -> Option<&mut Fixture> {
+        for fixture in &mut self.fixtures {
+            if fixture.id == id {
                 return Some(fixture);
             }
         }

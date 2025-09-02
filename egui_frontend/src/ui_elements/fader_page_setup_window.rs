@@ -29,8 +29,8 @@ impl FaderPageSetupWindow{
             self.screen_size = ui.available_size();
 
             let mut style = (*ctx.style()).clone();
-            style.spacing.slider_width = ((self.screen_size.y / 100.) * 5.); // Wider slider
-            style.spacing.interact_size.y = ((self.screen_size.y / 100.) * 6.); // Taller handle
+            style.spacing.slider_width = ((self.screen_size.y / 100.) * 20.); // Wider slider
+            style.spacing.interact_size.y = ((self.screen_size.y / 100.) * 10.); // Taller handle
             //style.spacing.interact_size.x = ((self.screen_size.x / 100.) * 4.);
             style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
             
