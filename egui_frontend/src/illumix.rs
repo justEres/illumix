@@ -30,8 +30,17 @@ impl PageInstances {
         universe: SharedState<Universe>,
     ) -> Self {
         Self {
-            fader_page: FaderPage::new(ctx, change_event_manager, listener_database),
-            visual_page: VisualPage::new(universe, &ctx.egui_ctx),
+            fader_page: FaderPage::new(
+                ctx,
+                change_event_manager.clone(),
+                listener_database.clone(),
+            ),
+            visual_page: VisualPage::new(
+                universe,
+                &ctx.egui_ctx,
+                change_event_manager,
+                listener_database,
+            ),
         }
     }
 }
@@ -50,7 +59,6 @@ impl Illumix {
         let universe = SharedState::new(Universe::new());
         let listener_database = SharedState::new(ListenerDatabase::new());
         let change_event_manager = SharedState::new(ChangeEventManager::new());
-        
 
         let page_instances = PageInstances::new(
             cc,
@@ -62,7 +70,7 @@ impl Illumix {
         let web_socket = open_websocket(universe.clone(), listener_database.clone()).unwrap();
 
         Illumix {
-            active_tab: Tab::FaderPage,
+            active_tab: Tab::MovingHeads, //changed for development
             universe,
             listener_database,
             change_event_manager,

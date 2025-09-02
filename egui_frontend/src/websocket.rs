@@ -10,8 +10,6 @@ use web_sys::{
 
 use crate::fixture_component_listener::{ListenerDatabase, SharedState};
 
-
-
 pub fn open_websocket(
     uni: SharedState<Universe>,
     listener_database: SharedState<ListenerDatabase>,
@@ -73,6 +71,8 @@ pub fn handle_packet(
             );
         }
         PacketType::FullUniverse(universe) => {
+            web_sys::console::log_1(&format!("{:?}", &universe).into());
+
             *uni.borrow_mut() = universe;
         }
         PacketType::FixtureComponentUpdated(fixture_component_updated) => {

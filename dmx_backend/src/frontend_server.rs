@@ -7,9 +7,9 @@ use fixture_lib::{
     universe::Universe,
 };
 use futures::{SinkExt, StreamExt};
-use tracing::info;
 use std::{collections::HashMap, net::SocketAddr, sync::Mutex};
 use tokio::sync::mpsc::{UnboundedSender, unbounded_channel};
+use tracing::info;
 use tungstenite::Message;
 use uuid::Uuid;
 use warp::Filter;
@@ -25,7 +25,6 @@ pub fn get_routes(
         .and(warp::ws())
         .and(peers_filter)
         .and(universe_filter)
-
         .map(|ws: warp::ws::Ws, peers, uni| {
             ws.on_upgrade(move |socket| handle_connection(socket, peers, uni))
         });
@@ -45,14 +44,11 @@ async fn handle_connection(
     peers: PeerMap,
     uni: Arc<Mutex<Universe>>,
 ) {
-
-    
     let (mut ws_sender, mut ws_receiver) = ws_stream.split();
     let (tx, mut rx) = unbounded_channel();
 
-    
     let uuid = Uuid::new_v4();
-    info!("New Client: {}",uuid);
+    info!("New Client: {}", uuid);
     peers.lock().await.insert(uuid, tx);
 
     // Sending task

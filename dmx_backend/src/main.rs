@@ -1,5 +1,8 @@
 use std::{
-    fs::{File, OpenOptions}, io::Write, process::Command, sync::{Arc, Mutex}
+    fs::{File, OpenOptions},
+    io::Write,
+    process::Command,
+    sync::{Arc, Mutex},
 };
 
 use crate::{dmx::DmxPort, frontend_server::get_routes};
@@ -16,7 +19,11 @@ mod server;
 use fixture_lib::patching::Patching;
 
 #[derive(Parser, Debug)]
-#[command(name = "Backend", version, about = "Serve egui frontend + websockets")]
+#[command(
+    name = "Backend",
+    version,
+    about = "This serves the egui frontend and opens a websocket server."
+)]
 struct Args {
     #[arg(short, long, default_value_t = 8080)]
     port: u16,
@@ -59,31 +66,36 @@ async fn main() {
         DmxPort::launch_artnet_send_thread(uni.clone());
     }
 
-    set_ws_path_in_frontend(args.headless,args.port,args.bonjour);
+    set_ws_path_in_frontend(args.headless, args.port, args.bonjour);
     if !args.headless {
         build_frontend();
         let routes = get_routes(uni.clone());
-        
-        
+
         let mut _svc;
-        if args.bonjour{
-            info!("announcing service under http://illumix.local:{}",args.port);
+        if args.bonjour {
+            info!(
+                "announcing service under http://illumix.local:{}",
+                args.port
+            );
             _svc = announce_illumix(args.port);
-        }
-        else {
-            info!("serving frontend with Warp under: {}",format!("http://{}:{}",gethostname().into_string().unwrap(),args.port));
+        } else {
+            info!(
+                "serving frontend with Warp under: {}",
+                format!(
+                    "http://{}:{}",
+                    gethostname().into_string().unwrap(),
+                    args.port
+                )
+            );
         }
 
-        
         warp::serve(routes).run((([0, 0, 0, 0], args.port))).await
-        
     } else {
         server::start_ws_server(uni).await;
     }
 }
 
 fn build_frontend() {
-    
     info!("Building Frontend");
     let status = Command::new("trunk")
         .args(&["build", "--release"])
@@ -94,23 +106,24 @@ fn build_frontend() {
     info!("Frontend Built");
 }
 
-
-fn set_ws_path_in_frontend(headless: bool,port: u16,bonjour: bool){
+fn set_ws_path_in_frontend(headless: bool, port: u16, bonjour: bool) {
     let mut path = String::new();
-    if headless{
+    if headless {
         path = String::from("ws://127.0.0.1:8000")
-    }
-    else{
-        if bonjour{
-            path = format!("ws://illumix.local:{}/ws",port);
+    } else {
+        if bonjour {
+            path = format!("ws://illumix.local:{}/ws", port);
+        } else {
+            path = format!("ws://{}:{}/ws", gethostname().into_string().unwrap(), port);
         }
-        else {
-            path = format!("ws://{}:{}/ws",gethostname().into_string().unwrap(),port);
-        }
-        
     }
-    info!("set frontend websocket path to: {}",path);
-    let mut file = OpenOptions::new().write(true).append(false).truncate(true).open("../egui_frontend/src/ws_config.txt").unwrap();
+    info!("set frontend websocket path to: {}", path);
+    let mut file = OpenOptions::new()
+        .write(true)
+        .append(false)
+        .truncate(true)
+        .open("../egui_frontend/src/ws_config.txt")
+        .unwrap();
     file.write(path.as_bytes()).unwrap();
 }
 
