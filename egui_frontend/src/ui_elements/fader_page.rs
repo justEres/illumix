@@ -33,6 +33,8 @@ pub struct FaderPage {
     group_select: bool,
     first_selected: Option<u8>,
     second_selection: Option<u8>,
+    selection_save: Option<Vec<bool>>,
+    test_save: Vec<bool>,
 }
 
 impl FaderPage {
@@ -59,6 +61,8 @@ impl FaderPage {
             group_select: false,
             first_selected: None,
             second_selection: None,
+            selection_save: None,
+            test_save: vec![false;24],
         };
         fp.add_listeners();
         fp
@@ -98,9 +102,10 @@ impl FaderPage {
                 style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
 
                 ui.set_style(style.clone());
-
                 
                 self.draw_slider_bank(ui);
+
+                
 
                 self.draw_ctrl_buttons(ui)
             });
@@ -148,6 +153,27 @@ impl FaderPage {
             {
                 self.fader_list.borrow_mut()[i].is_selected = false;
             }
+
+
+            if self.group_select{
+                match self.selection_save{
+                    None => {    
+                    let mut selection_save = Vec::new();    
+                    for k in 0..24{
+                        
+                        selection_save.push(self.fader_list.borrow_mut()[k].is_selected);
+                        
+                        
+                        self.fader_list.borrow_mut()[k].is_selected = false;
+                    }
+                    self.selection_save = Some(selection_save);
+                },
+                    Some(_) => {}
+                }
+            }
+            
+
+            
             
             
 
@@ -173,20 +199,43 @@ impl FaderPage {
                     
                     if self.second_selection.unwrap() < self.first_selected.unwrap(){
                         for k in self.second_selection.unwrap()..=self.first_selected .unwrap(){
+                            self.test_save[k as usize] = true;
                             self.fader_list.borrow_mut()[k as usize].is_selected = true;
                             
                         }
                     }else{
                         for k in self.first_selected.unwrap()..=self.second_selection.unwrap(){
+                            
                             self.fader_list.borrow_mut()[k as usize].is_selected = true;
                             
                         }
                     }
+                    let selection_save = self.selection_save.as_ref().unwrap();
+
+                    match self.selection_save{
+                        None => {},
+                        Some(_) => {for k in 0..24{
+                            if selection_save[k] == true{
+                                
+                                self.fader_list.borrow_mut()[k].is_selected = true;
+                            }
+                            
+                        }
+                        self.group_select = false;
+                        self.selection_save = None;
+                        self.first_selected = None;
+                        self.second_selection = None;}
+                    }
+                    
                     
 
                 }else if self.group_select{
+                    
                     self.first_selected = Some(i as u8);
                     self.fader_list.borrow_mut()[i].is_selected = false;
+                    
+
+                    
                 }
                 
             }
@@ -212,9 +261,16 @@ impl FaderPage {
         }
 
         let local = self.ui_auto_scaller.get_ctrl_button(3, self.rect);
-        if ui.put(local, Button::new("Group Select")).clicked(){
-            self.ctrl_button_trigger(3);
+        if self.group_select{
+            if ui.put(local, Button::new("Group Select").fill(Color32::DARK_RED)).clicked(){
+                self.ctrl_button_trigger(3);
+            }
+        }else{
+            if ui.put(local, Button::new("Group Select")).clicked(){
+                self.ctrl_button_trigger(3);
+            }
         }
+        
     }
 
     fn ctrl_button_trigger(&mut self, button_id: u8){
@@ -226,7 +282,13 @@ impl FaderPage {
             2 => for i in 0..24{
                 self.fader_list.borrow_mut()[i].is_selected = false;
             },
-            3 => self.group_select = true,
+            3 => if self.group_select{
+                self.group_select = !self.group_select;
+                self.first_selected =None;
+                self.second_selection =None;
+            }else{
+                self.group_select = !self.group_select;
+            },
             _ => return
         }
     }
