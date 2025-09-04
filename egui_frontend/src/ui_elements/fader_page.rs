@@ -102,6 +102,7 @@ impl FaderPage {
                 style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
 
                 ui.set_style(style.clone());
+
                 
                 self.draw_slider_bank(ui);
 
@@ -172,7 +173,22 @@ impl FaderPage {
                 }
             }
             
-
+            if !self.group_select && self.selection_save != None{
+                let selection_save = self.selection_save.as_ref().unwrap();
+                    match self.selection_save{
+                        None => {},
+                        Some(_) => {for k in 0..24{
+                            if selection_save[k] == true{
+                                
+                                self.fader_list.borrow_mut()[k].is_selected = true; }
+                            
+                        }
+                        self.group_select = false;
+                        self.selection_save = None;
+                        self.first_selected = None;
+                        self.second_selection = None;}
+                    }
+                }
             
             
             
@@ -224,7 +240,8 @@ impl FaderPage {
                         self.group_select = false;
                         self.selection_save = None;
                         self.first_selected = None;
-                        self.second_selection = None;}
+                        self.second_selection = None;
+                        self.selection_save = None;}
                     }
                     
                     
@@ -237,6 +254,8 @@ impl FaderPage {
 
                     
                 }
+
+                
                 
             }
 
@@ -251,7 +270,7 @@ impl FaderPage {
         }
 
         let local = self.ui_auto_scaller.get_ctrl_button(1, self.rect);
-        if ui.put(local, Button::new("Config")).clicked(){
+        if ui.put(local, Button::new("Setup")).clicked(){
             self.ctrl_button_trigger(1);
         }
 
@@ -262,11 +281,11 @@ impl FaderPage {
 
         let local = self.ui_auto_scaller.get_ctrl_button(3, self.rect);
         if self.group_select{
-            if ui.put(local, Button::new("Group Select").fill(Color32::DARK_RED)).clicked(){
+            if ui.put(local, Button::new("Gr Sel").fill(Color32::DARK_RED)).clicked(){
                 self.ctrl_button_trigger(3);
             }
         }else{
-            if ui.put(local, Button::new("Group Select")).clicked(){
+            if ui.put(local, Button::new("Gr Sel")).clicked(){
                 self.ctrl_button_trigger(3);
             }
         }

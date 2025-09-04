@@ -86,19 +86,19 @@ impl AutoScaller{
         match fader_id {
             0 => return Rect::from_min_max(
                 Pos2 { x: button_starting_min, y: panel_resolution.y / 2.},
-                Pos2 { x: button_starting_min + self.get_cell_size().x / 2., y: panel_resolution.y/ 2. + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
+                Pos2 { x: button_starting_min + self.get_cell_size().x / 1.5, y: panel_resolution.y/ 2. + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
             ),
             1 => return Rect::from_min_max(
                 Pos2 { x: button_starting_min, y: panel_resolution.y / 2. + ((panel_resolution.y/2.) / 4.) },
-                Pos2 { x: button_starting_min + self.get_cell_size().x / 2., y: panel_resolution.y/ 2. + ((panel_resolution.y/2.) / 4.) + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
+                Pos2 { x: button_starting_min + self.get_cell_size().x / 1.5, y: panel_resolution.y/ 2. + ((panel_resolution.y/2.) / 4.) + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
             ),
             2 => return Rect::from_min_max(
                 Pos2 { x: button_starting_min, y: panel_resolution.y / 2. + ((panel_resolution.y/2.) / 4.) * 2.},
-                Pos2 { x: button_starting_min + self.get_cell_size().x / 2., y: panel_resolution.y/ 2. + ((panel_resolution.y/2.) / 4.) *2. + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
+                Pos2 { x: button_starting_min + self.get_cell_size().x / 1.5, y: panel_resolution.y/ 2. + ((panel_resolution.y/2.) / 4.) *2. + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
             ),
             3 => return Rect::from_min_max(
                 Pos2 { x: button_starting_min, y: panel_resolution.y / 2. + ((panel_resolution.y/2.) / 4.) * 3.},
-                Pos2 { x: button_starting_min + self.get_cell_size().x / 2., y: panel_resolution.y/ 2. + ((panel_resolution.y/2.) / 4.) *3. + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
+                Pos2 { x: button_starting_min + self.get_cell_size().x / 1.5, y: panel_resolution.y/ 2. + ((panel_resolution.y/2.) / 4.) *3. + (button_starting_min - (button_starting_min + self.get_cell_size().x / 2.))}
             ),
             _ => return Rect::from_min_max(
                 Pos2 { x: (self.panel_resolution.x / 2. + self.panel_resolution.x / 2. - self.panel_resolution.x / 26.) + ((self.rect.max.x - (self.panel_resolution.x / 2. + self.panel_resolution.x / 2. - self.panel_resolution.x / 26.))  / 4.), y: self.panel_resolution.y / 2. },
