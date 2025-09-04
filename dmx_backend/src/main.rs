@@ -3,7 +3,7 @@ use std::{
 };
 
 use crate::{dmx::DmxPort, frontend_server::get_routes};
-use clap::{Arg, Parser};
+use clap::{builder::Str, Arg, Parser};
 use gethostname::gethostname;
 use libmdns::Responder;
 use tracing::info;
@@ -106,6 +106,7 @@ fn set_ws_path_in_frontend(headless: bool,port: u16,bonjour: bool){
         }
         else {
             path = format!("ws://{}:{}/ws",gethostname().into_string().unwrap(),port);
+            path = String::from("auto");
         }
         
     }

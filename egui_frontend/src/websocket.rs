@@ -14,8 +14,9 @@ pub fn open_websocket(
     uni: SharedState<Universe>,
     listener_database: SharedState<ListenerDatabase>,
 ) -> Result<web_sys::WebSocket, Error> {
-    let ws_url = String::from_utf8(include_bytes!("ws_config.txt").to_vec()).unwrap();
-    let ws = web_sys::WebSocket::new(&ws_url)?;
+    
+
+    let ws = web_sys::WebSocket::new(&get_ws_url()).unwrap();
 
     ws.set_binary_type(web_sys::BinaryType::Arraybuffer);
 
@@ -90,4 +91,13 @@ pub fn handle_packet(
 pub fn send_packet(ws: WebSocket, packet: Packet) {
     ws.send_with_u8_array(&packet.serialize())
         .expect("Couldnt send packet.");
+}
+
+
+pub fn get_ws_url() -> String{
+    let ws_url = String::from_utf8(include_bytes!("ws_config.txt").to_vec()).unwrap();
+    if ws_url == "auto"{
+        return format!("{}/ws",web_sys::window().unwrap().window().origin())
+    }
+    return ws_url;
 }
