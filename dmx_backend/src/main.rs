@@ -115,12 +115,12 @@ fn set_ws_path_in_frontend(headless: bool,port: u16,bonjour: bool){
 }
 
 fn announce_illumix(port: u16) -> libmdns::Service {
-    let responder = Responder::new().expect("Failed to create mDNS responder");
+    let responder = Responder::new();
 
     // Advertise the HTTP service under the name "illumix"
     responder.register(
-        "_http._tcp".to_owned(),
-        "illumix".to_owned(), // this will appear as illumix.local
+        "_http._tcp",
+        "illumix", // this will appear as illumix.local
         port,
         &["path=/"],
     )
