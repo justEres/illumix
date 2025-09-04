@@ -10,8 +10,6 @@ use web_sys::{
 
 use crate::fixture_component_listener::{ListenerDatabase, SharedState};
 
-
-
 pub fn open_websocket(
     uni: SharedState<Universe>,
     listener_database: SharedState<ListenerDatabase>,

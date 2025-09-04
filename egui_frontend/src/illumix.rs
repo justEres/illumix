@@ -50,7 +50,6 @@ impl Illumix {
         let universe = SharedState::new(Universe::new());
         let listener_database = SharedState::new(ListenerDatabase::new());
         let change_event_manager = SharedState::new(ChangeEventManager::new());
-        
 
         let page_instances = PageInstances::new(
             cc,

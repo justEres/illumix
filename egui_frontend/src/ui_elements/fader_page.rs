@@ -62,7 +62,7 @@ impl FaderPage {
             first_selected: None,
             second_selection: None,
             selection_save: None,
-            test_save: vec![false;24],
+            test_save: vec![false; 24],
         };
         fp.add_listeners();
         fp
@@ -88,38 +88,37 @@ impl FaderPage {
     }
 
     pub fn show(&mut self, ctx: &egui::Context) {
-            egui::CentralPanel::default().show(ctx, |ui| {
-                ctx.request_repaint();
-                self.rect = ui.max_rect();
-                self.panel_resolution = Vec2 {
-                    x: self.rect.max.x / 100.,
-                    y: self.rect.max.y / 100.,
-                };
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ctx.request_repaint();
+            self.rect = ui.max_rect();
+            self.panel_resolution = Vec2 {
+                x: self.rect.max.x / 100.,
+                y: self.rect.max.y / 100.,
+            };
 
-                let mut style = (*ctx.style()).clone();
-                style.spacing.slider_width = (self.ui_auto_scaller.get_cell_size().y); // Wider slider
-                style.spacing.interact_size.y = (self.ui_auto_scaller.get_cell_size().x / 1.75); // Taller handle
-                style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
+            let mut style = (*ctx.style()).clone();
+            style.spacing.slider_width = (self.ui_auto_scaller.get_cell_size().y); // Wider slider
+            style.spacing.interact_size.y = (self.ui_auto_scaller.get_cell_size().x / 1.75); // Taller handle
+            style.visuals.handle_shape = egui::style::HandleShape::Rect { aspect_ratio: 1.5 };
 
-                ui.set_style(style.clone());
+            ui.set_style(style.clone());
 
-                
-                self.draw_slider_bank(ui);
+            self.draw_slider_bank(ui);
 
-                
-
-                self.draw_ctrl_buttons(ui)
-            });
-        
+            self.draw_ctrl_buttons(ui)
+        });
     }
 
     fn draw_slider_bank(&mut self, ui: &mut Ui) {
-
         for i in 0..24 {
-            
-
-            let local = egui::Rect::from_min_size(self.ui_auto_scaller.get_rect(self.rect, true, i as u8).min + 
-                                                        Vec2{x: self.ui_auto_scaller.get_cell_size().x / 4., y:0.}, egui::vec2(20.0, 20.0));
+            let local = egui::Rect::from_min_size(
+                self.ui_auto_scaller.get_rect(self.rect, true, i as u8).min
+                    + Vec2 {
+                        x: self.ui_auto_scaller.get_cell_size().x / 4.,
+                        y: 0.,
+                    },
+                egui::vec2(20.0, 20.0),
+            );
 
             let response = ui.put(
                 local,
@@ -140,9 +139,15 @@ impl FaderPage {
             }
 
             let local = egui::Rect::from_min_size(
-                self.ui_auto_scaller.get_rect(self.rect, false, i as u8).min + 
-                Vec2{x:self.ui_auto_scaller.get_cell_size().x / 4., y: 0.},
-                egui::vec2(self.ui_auto_scaller.get_cell_size().x / 2., self.ui_auto_scaller.get_cell_size().x / 2.),
+                self.ui_auto_scaller.get_rect(self.rect, false, i as u8).min
+                    + Vec2 {
+                        x: self.ui_auto_scaller.get_cell_size().x / 4.,
+                        y: 0.,
+                    },
+                egui::vec2(
+                    self.ui_auto_scaller.get_cell_size().x / 2.,
+                    self.ui_auto_scaller.get_cell_size().x / 2.,
+                ),
             );
 
             if self.fader_list.borrow()[i].is_selected == false
@@ -155,160 +160,154 @@ impl FaderPage {
                 self.fader_list.borrow_mut()[i].is_selected = false;
             }
 
+            if self.group_select {
+                match self.selection_save {
+                    None => {
+                        let mut selection_save = Vec::new();
+                        for k in 0..24 {
+                            selection_save.push(self.fader_list.borrow_mut()[k].is_selected);
 
-            if self.group_select{
-                match self.selection_save{
-                    None => {    
-                    let mut selection_save = Vec::new();    
-                    for k in 0..24{
-                        
-                        selection_save.push(self.fader_list.borrow_mut()[k].is_selected);
-                        
-                        
-                        self.fader_list.borrow_mut()[k].is_selected = false;
+                            self.fader_list.borrow_mut()[k].is_selected = false;
+                        }
+                        self.selection_save = Some(selection_save);
                     }
-                    self.selection_save = Some(selection_save);
-                },
                     Some(_) => {}
                 }
             }
-            
-            if !self.group_select && self.selection_save != None{
+
+            if !self.group_select && self.selection_save != None {
                 let selection_save = self.selection_save.as_ref().unwrap();
-                    match self.selection_save{
-                        None => {},
-                        Some(_) => {for k in 0..24{
-                            if selection_save[k] == true{
-                                
-                                self.fader_list.borrow_mut()[k].is_selected = true; }
-                            
+                match self.selection_save {
+                    None => {}
+                    Some(_) => {
+                        for k in 0..24 {
+                            if selection_save[k] == true {
+                                self.fader_list.borrow_mut()[k].is_selected = true;
+                            }
                         }
                         self.group_select = false;
                         self.selection_save = None;
                         self.first_selected = None;
-                        self.second_selection = None;}
+                        self.second_selection = None;
                     }
                 }
-            
-            
-            
+            }
 
             if self.fader_list.borrow()[i].is_selected == true {
                 let local = egui::Rect::from_min_size(
-                    self.ui_auto_scaller.get_rect(self.rect, false, i as u8).min + 
-                    Vec2{x:self.ui_auto_scaller.get_cell_size().x / 2. -self.ui_auto_scaller.get_cell_size().x / 24. ,y: 0.},
-                    egui::vec2(self.ui_auto_scaller.get_cell_size().x / 12., self.ui_auto_scaller.get_cell_size().x / 12.),
+                    self.ui_auto_scaller.get_rect(self.rect, false, i as u8).min
+                        + Vec2 {
+                            x: self.ui_auto_scaller.get_cell_size().x / 2.
+                                - self.ui_auto_scaller.get_cell_size().x / 24.,
+                            y: 0.,
+                        },
+                    egui::vec2(
+                        self.ui_auto_scaller.get_cell_size().x / 12.,
+                        self.ui_auto_scaller.get_cell_size().x / 12.,
+                    ),
                 );
-    
+
                 ui.allocate_rect(local, egui::Sense::hover());
-    
-                
+
                 let color = Color32::from_rgb(255, 200, 120);
                 ui.painter().rect_filled(
                     local, 5.0,   // corner radius
                     color, // background color
                 );
 
-                if self.group_select && self.first_selected != None{
+                if self.group_select && self.first_selected != None {
                     //ui.label(format!("{}",(self.first_selected.unwrap())));
                     self.second_selection = Some(i as u8);
-                    
-                    if self.second_selection.unwrap() < self.first_selected.unwrap(){
-                        for k in self.second_selection.unwrap()..=self.first_selected .unwrap(){
+
+                    if self.second_selection.unwrap() < self.first_selected.unwrap() {
+                        for k in self.second_selection.unwrap()..=self.first_selected.unwrap() {
                             self.test_save[k as usize] = true;
                             self.fader_list.borrow_mut()[k as usize].is_selected = true;
-                            
                         }
-                    }else{
-                        for k in self.first_selected.unwrap()..=self.second_selection.unwrap(){
-                            
+                    } else {
+                        for k in self.first_selected.unwrap()..=self.second_selection.unwrap() {
                             self.fader_list.borrow_mut()[k as usize].is_selected = true;
-                            
                         }
                     }
                     let selection_save = self.selection_save.as_ref().unwrap();
 
-                    match self.selection_save{
-                        None => {},
-                        Some(_) => {for k in 0..24{
-                            if selection_save[k] == true{
-                                
-                                self.fader_list.borrow_mut()[k].is_selected = true;
+                    match self.selection_save {
+                        None => {}
+                        Some(_) => {
+                            for k in 0..24 {
+                                if selection_save[k] == true {
+                                    self.fader_list.borrow_mut()[k].is_selected = true;
+                                }
                             }
-                            
+                            self.group_select = false;
+                            self.selection_save = None;
+                            self.first_selected = None;
+                            self.second_selection = None;
+                            self.selection_save = None;
                         }
-                        self.group_select = false;
-                        self.selection_save = None;
-                        self.first_selected = None;
-                        self.second_selection = None;
-                        self.selection_save = None;}
                     }
-                    
-                    
-
-                }else if self.group_select{
-                    
+                } else if self.group_select {
                     self.first_selected = Some(i as u8);
                     self.fader_list.borrow_mut()[i].is_selected = false;
-                    
-
-                    
                 }
-
-                
-                
             }
-
-            
         }
     }
 
-    fn draw_ctrl_buttons(&mut self, ui: &mut Ui){
+    fn draw_ctrl_buttons(&mut self, ui: &mut Ui) {
         let local = self.ui_auto_scaller.get_ctrl_button(0, self.rect);
-        if ui.put(local, Button::new("All")).clicked(){
+        if ui.put(local, Button::new("All")).clicked() {
             self.ctrl_button_trigger(0);
         }
 
         let local = self.ui_auto_scaller.get_ctrl_button(1, self.rect);
-        if ui.put(local, Button::new("Setup")).clicked(){
+        if ui.put(local, Button::new("Setup")).clicked() {
             self.ctrl_button_trigger(1);
         }
 
         let local = self.ui_auto_scaller.get_ctrl_button(2, self.rect);
-        if ui.put(local, Button::new("Clear")).clicked(){
+        if ui.put(local, Button::new("Clear")).clicked() {
             self.ctrl_button_trigger(2);
         }
 
         let local = self.ui_auto_scaller.get_ctrl_button(3, self.rect);
-        if self.group_select{
-            if ui.put(local, Button::new("Gr Sel").fill(Color32::DARK_RED)).clicked(){
+        if self.group_select {
+            if ui
+                .put(local, Button::new("Gr Sel").fill(Color32::DARK_RED))
+                .clicked()
+            {
                 self.ctrl_button_trigger(3);
             }
-        }else{
-            if ui.put(local, Button::new("Gr Sel")).clicked(){
+        } else {
+            if ui.put(local, Button::new("Gr Sel")).clicked() {
                 self.ctrl_button_trigger(3);
             }
         }
-        
     }
 
-    fn ctrl_button_trigger(&mut self, button_id: u8){
-        match button_id{
-            0 => for i in 0..24{
-                self.fader_list.borrow_mut()[i].is_selected = true;
-            },
+    fn ctrl_button_trigger(&mut self, button_id: u8) {
+        match button_id {
+            0 => {
+                for i in 0..24 {
+                    self.fader_list.borrow_mut()[i].is_selected = true;
+                }
+            }
             1 => return,
-            2 => for i in 0..24{
-                self.fader_list.borrow_mut()[i].is_selected = false;
-            },
-            3 => if self.group_select{
-                self.group_select = !self.group_select;
-                self.first_selected =None;
-                self.second_selection =None;
-            }else{
-                self.group_select = !self.group_select;
-            },
-            _ => return
+            2 => {
+                for i in 0..24 {
+                    self.fader_list.borrow_mut()[i].is_selected = false;
+                }
+            }
+            3 => {
+                if self.group_select {
+                    self.group_select = !self.group_select;
+                    self.first_selected = None;
+                    self.second_selection = None;
+                } else {
+                    self.group_select = !self.group_select;
+                }
+            }
+            _ => return,
         }
     }
 }

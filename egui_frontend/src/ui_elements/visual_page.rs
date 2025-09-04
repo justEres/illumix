@@ -1,5 +1,6 @@
 use eframe::egui::{
-    self, include_image, load::TexturePoll, CentralPanel, ColorImage, Image, Layout, TextureHandle, TextureOptions
+    self, CentralPanel, ColorImage, Image, Layout, TextureHandle, TextureOptions, include_image,
+    load::TexturePoll,
 };
 use fixture_lib::universe::{self, Universe};
 
@@ -32,15 +33,17 @@ impl VisualPage {
     pub fn show(&mut self, ctx: &egui::Context) {
         CentralPanel::default().show(ctx, |ui| {
             ui.label("Visual Page");
-            ui.with_layout(Layout::centered_and_justified(egui::Direction::TopDown), |ui| {
-        ui.add(
-                Image::new(&self.forum_texture)
-                    .max_size(ui.available_size())
-                    .shrink_to_fit()
-                    .maintain_aspect_ratio(true),
-            );
-            })
-    
+            ui.with_layout(
+                Layout::centered_and_justified(egui::Direction::TopDown),
+                |ui| {
+                    ui.add(
+                        Image::new(&self.forum_texture)
+                            .max_size(ui.available_size())
+                            .shrink_to_fit()
+                            .maintain_aspect_ratio(true),
+                    );
+                },
+            )
         });
     }
 }
