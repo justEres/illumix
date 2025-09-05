@@ -13,12 +13,15 @@ use web_sys::console::info;
 use crate::fader_page::fader::Fader;
 use crate::fixture_component_listener::{ChangeEventManager, ListenerDatabase, SharedState};
 
-use crate::fader_page::ui_auto_scalling::AutoScaller;
+use crate::right_sidebar::RightSidebar;
+use crate::right_sidebar::MasterFader;
+use crate::ui_auto_scalling::{self, AutoScaller};
 
-#[path = "ui_helper/ui_auto_scalling.rs"]
-mod ui_auto_scalling;
+
 
 mod fader;
+
+ // Import MasterFader if it exists in the fader module
 
 pub struct FaderPage {
     fader_list: SharedState<[fader::Fader; 24]>,
@@ -34,14 +37,19 @@ pub struct FaderPage {
     first_selected: Option<u8>,
     second_selection: Option<u8>,
     selection_save: Option<Vec<bool>>,
-    test_save: Vec<bool>,
+
+    master_fader: SharedState<MasterFader>,
+    
 }
+
+
 
 impl FaderPage {
     pub fn new(
         ctx: &CreationContext,
         change_event_manager: SharedState<ChangeEventManager>,
         listener_database: SharedState<ListenerDatabase>,
+        master_fader: SharedState<MasterFader>,
     ) -> Self {
         let panel_resolution = Vec2 { x: 1000., y: 800. };
 
@@ -49,6 +57,7 @@ impl FaderPage {
             SharedState::new(std::array::from_fn(|_| fader::Fader::new(None, None)));
 
         let rect = Rect::from_min_size(Pos2::ZERO, egui::vec2(0.0, 0.0));
+         
 
         let mut fp = Self {
             fader_list,
@@ -62,7 +71,8 @@ impl FaderPage {
             first_selected: None,
             second_selection: None,
             selection_save: None,
-            test_save: vec![false; 24],
+
+            master_fader,
         };
         fp.add_listeners();
         fp
@@ -126,6 +136,11 @@ impl FaderPage {
                     .show_value(false)
                     .orientation(egui::SliderOrientation::Vertical),
             );
+
+            if self.master_fader.borrow().master_control && self.fader_list.borrow_mut()[i].is_selected{
+                self.fader_list.borrow_mut()[i].fader_value = self.master_fader.borrow().master_fader;
+            }
+            
 
             if response.changed() {
                 self.fader_list.borrow_mut()[i].fader_value_changed();
@@ -221,7 +236,6 @@ impl FaderPage {
 
                     if self.second_selection.unwrap() < self.first_selected.unwrap() {
                         for k in self.second_selection.unwrap()..=self.first_selected.unwrap() {
-                            self.test_save[k as usize] = true;
                             self.fader_list.borrow_mut()[k as usize].is_selected = true;
                         }
                     } else {

@@ -4,10 +4,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::WebSocket;
 
 use crate::{
-    fader_page::{self, FaderPage},
-    fixture_component_listener::{ChangeEventManager, ListenerDatabase, SharedState},
-    visual_page::VisualPage,
-    websocket::open_websocket,
+    fader_page::{self, FaderPage}, fixture_component_listener::{ChangeEventManager, ListenerDatabase, SharedState}, right_sidebar::{self, MasterFader, RightSidebar}, visual_page::VisualPage, websocket::open_websocket
 };
 
 #[derive(PartialEq)]
@@ -20,6 +17,7 @@ enum Tab {
 pub struct PageInstances {
     fader_page: FaderPage,
     visual_page: VisualPage,
+
 }
 
 impl PageInstances {
@@ -28,9 +26,10 @@ impl PageInstances {
         change_event_manager: SharedState<ChangeEventManager>,
         listener_database: SharedState<ListenerDatabase>,
         universe: SharedState<Universe>,
+        master_fader: SharedState<MasterFader>,
     ) -> Self {
         Self {
-            fader_page: FaderPage::new(ctx, change_event_manager, listener_database),
+            fader_page: FaderPage::new(ctx, change_event_manager, listener_database, master_fader),
             visual_page: VisualPage::new(universe, &ctx.egui_ctx),
         }
     }
@@ -43,6 +42,8 @@ pub struct Illumix {
     change_event_manager: SharedState<ChangeEventManager>,
     web_socket: WebSocket,
     page_instances: PageInstances,
+    right_sidebar: RightSidebar,
+     
 }
 
 impl Illumix {
@@ -51,14 +52,19 @@ impl Illumix {
         let listener_database = SharedState::new(ListenerDatabase::new());
         let change_event_manager = SharedState::new(ChangeEventManager::new());
 
+        let master_fader = SharedState::new(MasterFader::new());
+
         let page_instances = PageInstances::new(
             cc,
             change_event_manager.clone(),
             listener_database.clone(),
             universe.clone(),
+            master_fader.clone(),
         );
 
         let web_socket = open_websocket(universe.clone(), listener_database.clone()).unwrap();
+
+        let right_sidebar = RightSidebar::new(cc, master_fader);
 
         Illumix {
             active_tab: Tab::FaderPage,
@@ -67,6 +73,7 @@ impl Illumix {
             change_event_manager,
             web_socket,
             page_instances,
+            right_sidebar,
         }
     }
 
@@ -107,9 +114,7 @@ impl App for Illumix {
             ui.heading("Left Sidebar");
         });
 
-        egui::SidePanel::right("right_sidebar").show(ctx, |ui| {
-            ui.heading("Right Sidebar");
-        });
+        self.right_sidebar.show(ctx);
 
         egui::CentralPanel::default().show(ctx, |ui| match self.active_tab {
             Tab::FaderPage => {

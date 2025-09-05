@@ -16,6 +16,11 @@ mod fixture_manager;
 #[path = "ui_elements/visual_page.rs"]
 mod visual_page;
 
+#[path = "ui_elements/right_sidebar.rs"]
+mod right_sidebar;
+#[path = "ui_elements/ui_helper/ui_auto_scalling.rs"]
+mod ui_auto_scalling;
+
 mod fixture_component_listener;
 mod illumix;
 mod websocket;
